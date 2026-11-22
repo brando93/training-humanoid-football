@@ -2,7 +2,7 @@
 export AWS_PROFILE := humanoid
 export AWS_REGION := us-east-1
 
-.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup
+.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup ami-kill-build
 
 help:
 	@echo "make login          - inicia sesión SSO (perfil humanoid)"
@@ -29,9 +29,17 @@ hooks:
 ami-validate:
 	cd infra/packer && packer init . && packer fmt -check . && packer validate .
 
+# PACKER_FLAGS=-on-error=abort deja viva la instancia si falla, para depurar por SSM.
+# ¡Cuesta mientras siga encendida! Terminarla al acabar (make ami-kill-build).
+PACKER_FLAGS ?=
+
 ami: check-account ami-validate
 	@command -v session-manager-plugin >/dev/null || { echo "Falta session-manager-plugin: brew install --cask session-manager-plugin"; exit 1; }
-	cd infra/packer && packer build -timestamp-ui .
+	cd infra/packer && packer build -timestamp-ui $(PACKER_FLAGS) .
+
+ami-kill-build: check-account
+	@ids=$$(aws ec2 describe-instances --filters Name=tag:Name,Values=humanoid-packer-build Name=instance-state-name,Values=pending,running,stopping,stopped --query 'Reservations[].Instances[].InstanceId' --output text); \
+	if [ -n "$$ids" ]; then aws ec2 terminate-instances --instance-ids $$ids --query 'TerminatingInstances[].InstanceId' --output text; else echo "No hay instancias de build vivas."; fi
 
 ami-cleanup: check-account
 	./infra/packer/scripts/cleanup-old-amis.sh 1

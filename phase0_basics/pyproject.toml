@@ -1,0 +1,17 @@
+[project]
+name = "phase0-basics"
+version = "0.1.0"
+description = "Fase 0: fundamentos de RL con MuJoCo + Gymnasium + Stable-Baselines3 (corre en el Mac, sin GPU)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "mujoco>=3.3",
+    "gymnasium[mujoco]>=1.2",
+    "stable-baselines3>=2.6",
+    "tensorboard>=2.18",
+    "imageio[ffmpeg]>=2.36",
+    "tqdm",
+    "rich",
+]
+
+[tool.uv]
+package = false

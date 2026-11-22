@@ -59,3 +59,8 @@ __pycache__/
 
 # Packer
 infra/packer/manifest.json
+
+# Fase 0
+phase0_basics/runs/
+phase0_basics/.venv/
+third_party/

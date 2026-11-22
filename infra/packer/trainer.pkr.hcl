@@ -85,6 +85,12 @@ source "amazon-ebs" "trainer" {
     http_put_response_hop_limit = 2
   }
 
+  # El primer snapshot de ~70 GB tarda ~40 min; el límite por defecto (~30 min) se queda corto.
+  aws_polling {
+    delay_seconds = 30
+    max_attempts  = 180
+  }
+
   launch_block_device_mappings {
     device_name           = "/dev/sda1"
     volume_size           = 150

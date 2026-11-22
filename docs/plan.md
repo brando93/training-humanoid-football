@@ -92,7 +92,7 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
 | I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM (launch template pasa a I4) | ✅ |
-| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | En curso: plantilla lista, build en pruebas; launch template pendiente |
+| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | AMI ✅ `ami-04f81edc1c266cea8` (snapshot 106,6 GB ≈ $5,33/mes); launch template pendiente |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
 | I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | |
 | I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | |
@@ -121,7 +121,9 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
   y `uv sync` no resuelve (choque con el extra `teleop`). Se instala con `uv pip install -r pyproject.toml --extra isaacsim`.
 - ProtoMotions choca con los pines de Isaac Sim (p. ej. `numpy==2.3.1`): se instala con `--overrides`
   de las versiones que dejó Isaac Lab, igual que hace Isaac Lab.
-- torch queda en CUDA 13 (`cu130`): necesita driver NVIDIA 580 o posterior.
+- torch queda en CUDA 13 (`cu130`): necesita driver NVIDIA 580 o posterior (la AMI trae 620.70.06).
+- El primer snapshot de la AMI (~107 GB) tardó ~40 min: Packer necesita `aws_polling` con más intentos.
+- El snapshot es completo (no incremental) porque parte de una AMI de AWS: cada AMI que conservemos cuesta ~$5/mes.
 
 ## Decisión: repo privado sin protección de rama (2026-11-22)
 GitHub Free no ofrece protección de rama ni push protection en repos privados. Se aceptó quedarse
@@ -136,9 +138,9 @@ privado sin pagar GitHub Pro. Controles que compensan:
 | Concepto | Costo al mes |
 |---|---|
 | GPU spot | ~$29 |
-| Infraestructura (snapshot de la AMI ~$3, S3, disco e IP temporales) | ~$6 |
+| Infraestructura (snapshot de la AMI ~$5,33 medido, S3, disco e IP temporales) | ~$8 |
 | Claude en Bedrock | ~$6–8 |
-| Margen | ~$7 |
+| Margen | ~$5 |
 
 **Precios spot reales en us-east-1 (medidos el 2026-11-22, mediana de 24 h):**
 

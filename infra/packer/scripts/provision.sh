@@ -58,17 +58,12 @@ data/pretrained_models/gpc_prior/soma_bones/**,\
 data/motion_for_trackers/*soma*"
 
 export UV_HTTP_TIMEOUT=600
-# La raíz de Isaac Lab es un proyecto uv con `package = false`: no se instala con
-# `uv pip install -e .` sino con `uv sync`, que respeta sus fuentes, índices y overrides.
-export UV_PROJECT_ENVIRONMENT="$VENV"
-
-log "Isaac Lab + Isaac Sim (uv sync --extra isaacsim)"
-if ! (cd IsaacLab && uv sync --extra isaacsim --python 3.12); then
-  log "uv sync falló; plan B: instalar las dependencias de la raíz sin construirla"
-  rm -rf "$VENV"
-  uv venv --python 3.12 "$VENV"
-  (cd IsaacLab && VIRTUAL_ENV="$VENV" uv pip install -r pyproject.toml --extra isaacsim)
-fi
+# La raíz de Isaac Lab es un proyecto uv con `package = false`: `uv pip install -e .` falla
+# y `uv sync` no resuelve en este commit (choque de plataforma con pytetwild/teleop).
+# Se instalan las dependencias de la raíz sin construirla (verificado el 2026-11-22).
+log "Isaac Lab + Isaac Sim (dependencias de la raíz, --extra isaacsim)"
+uv venv --python 3.12 "$VENV"
+(cd IsaacLab && VIRTUAL_ENV="$VENV" uv pip install -r pyproject.toml --extra isaacsim)
 # shellcheck disable=SC1091
 source "$VENV/bin/activate"
 python -c "import torch, isaaclab; print('OK torch', torch.__version__, '| isaaclab', isaaclab.__file__)"
@@ -76,7 +71,7 @@ python -c "import torch, isaaclab; print('OK torch', torch.__version__, '| isaac
 # Que ProtoMotions use exactamente el torch/numpy/warp/newton/isaacsim que fijó Isaac Lab.
 # Son overrides (no constraints), igual que en Isaac Lab: reemplazan los pines de isaacsim
 # (p. ej. numpy==2.3.1) en lugar de chocar con ellos.
-uv pip freeze | grep -iE '^(torch|torchvision|torchaudio|numpy|warp-lang|newton|isaacsim)(\[|=| @)' > "$ROOT/constraints.txt" || true
+uv pip freeze | grep -iE '^(torch|torchvision|torchaudio|numpy|pillow|warp-lang|newton|isaacsim)(\[|=| @)' > "$ROOT/constraints.txt" || true
 log "Versiones fijadas para ProtoMotions:"; cat "$ROOT/constraints.txt"
 
 log "ProtoMotions (backend Isaac Lab)"
@@ -106,14 +101,31 @@ PY
 CHECK_EOF
 
 # Un archivo LFS sin bajar es un "pointer" de ~130 bytes y rompe la carga de modelos.
+# Solo se revisan las carpetas que bajamos a propósito (los modelos de G1 y el tracker continuo
+# de SOMA quedan como punteros y no se usan).
+DATA="$ROOT/ProtoMotions/data"
+NEEDED=(
+  "$DATA/pretrained_models/motion_tracker/anatomic_soma_bones_fsq"
+  "$DATA/pretrained_models/gpc_prior/anatomic_soma_bones"
+  "$DATA/pretrained_models/motion_tracker/soma_bones_fsq"
+  "$DATA/pretrained_models/gpc_prior/soma_bones"
+)
 bad=0
+for d in "${NEEDED[@]}"; do
+  [[ -f "$d/inference_last.ckpt" ]] || { echo "ERROR: falta $d/inference_last.ckpt"; bad=1; }
+  while IFS= read -r -d '' f; do
+    if head -c 64 "$f" | grep -q "git-lfs.github.com/spec"; then
+      echo "ERROR: archivo LFS sin descargar: $f"; bad=1
+    fi
+  done < <(find "$d" -type f -print0)
+done
 while IFS= read -r -d '' f; do
   if head -c 64 "$f" | grep -q "git-lfs.github.com/spec"; then
-    echo "ERROR: archivo LFS sin descargar: $f"; bad=1
+    echo "ERROR: clip LFS sin descargar: $f"; bad=1
   fi
-done < <(find "$ROOT/ProtoMotions/data/pretrained_models" -type f -print0)
+done < <(find "$DATA/motion_for_trackers" -name '*soma*' -type f -print0)
 [[ $bad -eq 0 ]] || exit 1
-find "$ROOT/ProtoMotions/data/pretrained_models" -name '*.ckpt' -exec ls -lh {} \;
+for d in "${NEEDED[@]}"; do ls -lh "$d/inference_last.ckpt"; done
 
 log "Script de entorno de ejecución"
 cat > "$ROOT/env.sh" <<'ENV_EOF'
