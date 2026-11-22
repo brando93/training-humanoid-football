@@ -31,4 +31,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: shellcheck
-        run: shellcheck scripts/*.sh
+        run: shellcheck scripts/*.sh infra/packer/scripts/*.sh
+
+  infra-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.17.2"
+      - name: terraform fmt
+        run: terraform fmt -check -recursive infra/terraform
+      - name: terraform validate (sin backend ni credenciales)
+        run: |
+          for d in infra/terraform/bootstrap infra/terraform/base; do
+            terraform -chdir="$d" init -backend=false -input=false >/dev/null
+            terraform -chdir="$d" validate
+          done
+      - uses: hashicorp/setup-packer@v3
+        with:
+          version: "1.16.2"
+      - name: packer fmt y validate (solo sintaxis)
+        working-directory: infra/packer
+        run: |
+          packer init .
+          packer fmt -check .
+          packer validate -syntax-only .

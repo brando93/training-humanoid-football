@@ -116,7 +116,7 @@ build {
       "PROTOMOTIONS_COMMIT=${var.protomotions_commit}",
     ]
     script          = "${path.root}/scripts/provision.sh"
-    execute_command = "chmod +x {{ .Path }}; sudo -E bash '{{ .Path }}'"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash '{{ .Path }}'"
     timeout         = "2h"
   }
 

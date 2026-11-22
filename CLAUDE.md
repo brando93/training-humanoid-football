@@ -21,7 +21,12 @@ de forma breve y práctica cuando aparezcan, y sé honesto si algo no es viable.
 4. **Cuenta AWS correcta.** Solo la cuenta `611606529792`, región `us-east-1`, perfil `humanoid`.
    El Mac tiene perfiles de trabajo: nunca uses `default` ni otro perfil. Corre `make check-account`
    antes de cualquier comando que toque AWS.
-5. **Datos con licencia** (AMASS, SMPL): no comercial y no redistribuible. Nunca se suben al repo.
+5. **Datos y modelos con licencia** (BONES-SEED, checkpoints de NVIDIA; AMASS/SMPL no se usan): nunca
+   se suben al repo. Las licencias (EULA de Isaac Sim incluida) las acepta Brandon, nunca el agente.
+   Avisa si algo no sirve para un juego comercial (ver `docs/licensing.md`).
+9. **Comprueba siempre el costo.** Estima antes y verifica después de cada cambio en AWS. Para
+   chequeos de rutina usa `aws budgets describe-budget` (gratis); Cost Explorer cobra $0,01 por consulta.
+   Si dejas una AMI nueva, borra las viejas (`make ami-cleanup`).
 6. **Un cambio por PR**, con la hipótesis escrita ("cambio X para mover la métrica Y") y la entrada
    correspondiente en `journal/experiments.md`.
 7. **No hagas merge, no apliques Terraform y no toques `infra/`, `.github/` ni el presupuesto**
@@ -53,8 +58,16 @@ caídas, puntuación del discriminador y la nota de realismo (1–5) que Brandon
 - `journal/experiments.md`: diario de experimentos
 - `docs/`: plan y decisiones
 
+- `infra/terraform/bootstrap`: bucket de estado; `infra/terraform/base`: VPC, S3, IAM, OIDC
+- `unreal/` (fase 2.5): proyecto UE5 y plugin MuJoCo; `export/`: ONNX y MJCF para el juego
+
 ## Comandos
 - `make login` — sesión SSO
 - `make check-account` — verifica la cuenta AWS
 - `make scan` — busca secretos con gitleaks
 - `make hooks` — instala el pre-commit de gitleaks
+- `make ami-validate` / `make ami` / `make ami-cleanup` — AMI de entrenamiento con Packer
+
+## Antes de escribir código que dependa de algo externo
+Verifica la documentación actual (ProtoMotions, Isaac Lab, MuJoCo, Unreal): ya cambiaron cosas
+durante el proyecto. Las lecciones están en `docs/plan.md` → "Lecciones técnicas registradas".

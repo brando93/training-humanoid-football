@@ -21,4 +21,4 @@ make check-account
 
 ## Seguridad
 Sin claves de larga duración: SSO en local, OIDC en GitHub Actions, instance profiles en EC2.
-Los datos de mocap con licencia (AMASS, SMPL) nunca se suben al repo.
+Los datos de mocap y los modelos con licencia nunca se suben al repo (ver [docs/licensing.md](docs/licensing.md)).

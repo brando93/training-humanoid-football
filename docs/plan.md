@@ -92,7 +92,7 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
 | I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM (launch template pasa a I4) | ✅ |
-| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | En curso |
+| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | En curso: plantilla lista, build en pruebas; launch template pendiente |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
 | I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | |
 | I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | |
@@ -108,6 +108,21 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 - `unreal/Plugins/MuJoCoRuntime/` — plugin C++: MuJoCo embebido + puente con NNE.
 - `export/` — exportar políticas a ONNX y el MJCF del jugador y la cancha para Unreal.
 
+## Pendientes externos
+- Cuotas de GPU familia G (8 vCPU on-demand y spot): casos de soporte abiertos con AWS.
+- Verificación del email en SES (clic en el correo de AWS).
+- Aceptación de la EULA de Isaac Sim por Brandon (`docs/licensing.md`).
+- Revisión de la NVIDIA Open Model License y de la licencia de BONES-SEED antes de cualquier uso comercial.
+
+## Lecciones técnicas registradas
+- OIDC: el repo usa subjects inmutables de GitHub (`repo:brando93@45773752/training-humanoid-football@1467320856:...`);
+  todo rol nuevo debe confiar en ese prefijo.
+- Isaac Lab en el commit fijado: la raíz es un proyecto uv con `package = false`. `uv pip install -e .` falla
+  y `uv sync` no resuelve (choque con el extra `teleop`). Se instala con `uv pip install -r pyproject.toml --extra isaacsim`.
+- ProtoMotions choca con los pines de Isaac Sim (p. ej. `numpy==2.3.1`): se instala con `--overrides`
+  de las versiones que dejó Isaac Lab, igual que hace Isaac Lab.
+- torch queda en CUDA 13 (`cu130`): necesita driver NVIDIA 580 o posterior.
+
 ## Decisión: repo privado sin protección de rama (2026-11-22)
 GitHub Free no ofrece protección de rama ni push protection en repos privados. Se aceptó quedarse
 privado sin pagar GitHub Pro. Controles que compensan:
@@ -117,8 +132,29 @@ privado sin pagar GitHub Pro. Controles que compensan:
 - Si el repo se hace público o se pasa a Pro, activar protección de `main` y push protection.
 
 ## Presupuesto (tope $50/mes)
-GPU spot g6.2xlarge ~2,1 h/día ≈ $29 · infraestructura (incluida la AMI) ≈ $6 · Claude en Bedrock ≈ $6–8 · margen ≈ $7.
-Todo lo de Unreal corre en el Mac: $0.
+
+| Concepto | Costo al mes |
+|---|---|
+| GPU spot | ~$29 |
+| Infraestructura (snapshot de la AMI ~$3, S3, disco e IP temporales) | ~$6 |
+| Claude en Bedrock | ~$6–8 |
+| Margen | ~$7 |
+
+**Precios spot reales en us-east-1 (medidos el 2026-11-22, mediana de 24 h):**
+
+| Instancia | GPU | RAM | $/h | Horas con $29 |
+|---|---|---|---|---|
+| g6.2xlarge | L4 24 GB | 32 GB | ~0,75 | ~39 h/mes (~1,3 h/día) |
+| g4dn.2xlarge | T4 16 GB | 32 GB | ~0,26 | ~110 h/mes (~3,7 h/día) |
+| g6.xlarge | L4 24 GB | 16 GB | ~0,60 | RAM probablemente insuficiente para Isaac Sim |
+
+Decisión pendiente para la Fase 2: benchmark de **pasos de entrenamiento por dólar** en g4dn.2xlarge
+vs g6.2xlarge (no está confirmado que Isaac Sim 6 funcione bien en T4). La AMI sirve para ambas.
+El launcher calcula cada día las horas según el presupuesto restante, así que el tope se respeta
+con cualquier tipo de instancia.
+
+Reglas de costo: estimar antes y verificar después de cada cambio en AWS; para chequeos de rutina
+usar la API de Budgets (gratis), no Cost Explorer ($0,01 por consulta). Todo lo de Unreal corre en el Mac: $0.
 
 ## Horario
 Entrenamiento a las 10:00 de Costa Rica (16:00 UTC). Issue con el reporte hacia las 12:30.

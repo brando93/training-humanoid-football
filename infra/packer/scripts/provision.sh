@@ -57,18 +57,32 @@ data/pretrained_models/motion_tracker/soma_bones_fsq/**,\
 data/pretrained_models/gpc_prior/soma_bones/**,\
 data/motion_for_trackers/*soma*"
 
-log "Entorno Python 3.12"
-uv venv --python 3.12 "$VENV"
+export UV_HTTP_TIMEOUT=600
+# La raíz de Isaac Lab es un proyecto uv con `package = false`: no se instala con
+# `uv pip install -e .` sino con `uv sync`, que respeta sus fuentes, índices y overrides.
+export UV_PROJECT_ENVIRONMENT="$VENV"
+
+log "Isaac Lab + Isaac Sim (uv sync --extra isaacsim)"
+if ! (cd IsaacLab && uv sync --extra isaacsim --python 3.12); then
+  log "uv sync falló; plan B: instalar las dependencias de la raíz sin construirla"
+  rm -rf "$VENV"
+  uv venv --python 3.12 "$VENV"
+  (cd IsaacLab && VIRTUAL_ENV="$VENV" uv pip install -r pyproject.toml --extra isaacsim)
+fi
 # shellcheck disable=SC1091
 source "$VENV/bin/activate"
-export UV_HTTP_TIMEOUT=600
+python -c "import torch, isaaclab; print('OK torch', torch.__version__, '| isaaclab', isaaclab.__file__)"
 
-log "Isaac Lab + Isaac Sim (pip)"
-(cd IsaacLab && uv pip install -e ".[isaacsim]" --extra-index-url https://pypi.nvidia.com)
+# Que ProtoMotions use exactamente el torch/numpy/warp/newton/isaacsim que fijó Isaac Lab.
+# Son overrides (no constraints), igual que en Isaac Lab: reemplazan los pines de isaacsim
+# (p. ej. numpy==2.3.1) en lugar de chocar con ellos.
+uv pip freeze | grep -iE '^(torch|torchvision|torchaudio|numpy|warp-lang|newton|isaacsim)(\[|=| @)' > "$ROOT/constraints.txt" || true
+log "Versiones fijadas para ProtoMotions:"; cat "$ROOT/constraints.txt"
 
 log "ProtoMotions (backend Isaac Lab)"
-uv pip install -e "$ROOT/ProtoMotions[isaaclab]" --extra-index-url https://pypi.nvidia.com
-uv pip install -r "$ROOT/ProtoMotions/requirements_isaaclab.txt" --extra-index-url https://pypi.nvidia.com
+PM_INDEX=(--extra-index-url https://pypi.nvidia.com --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match)
+uv pip install -e "$ROOT/ProtoMotions[isaaclab]" --overrides "$ROOT/constraints.txt" "${PM_INDEX[@]}"
+uv pip install -r "$ROOT/ProtoMotions/requirements_isaaclab.txt" --overrides "$ROOT/constraints.txt" "${PM_INDEX[@]}"
 
 log "MuJoCo (compuerta de validación del runtime del juego)"
 uv pip install "mujoco>=3"
@@ -78,6 +92,8 @@ uv cache clean
 USER_EOF
 
 log "Verificaciones (sin GPU)"
+# torch cu130 necesita un driver NVIDIA de la serie 580 o posterior.
+echo "Driver NVIDIA instalado: $(modinfo -F version nvidia 2>/dev/null || echo desconocido)"
 sudo -u ubuntu -H bash -euo pipefail <<'CHECK_EOF'
 source /opt/humanoid/venv/bin/activate
 python - <<'PY'
