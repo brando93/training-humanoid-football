@@ -36,7 +36,7 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | Etapa | Contenido | Estado |
 |---|---|---|
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
-| I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | En curso (repo, gitleaks y alerta listos; falta OIDC) |
+| I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM, launch template | |
 | I4 | AMI con Packer (driver NVIDIA, Isaac Lab, ProtoMotions) | |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
