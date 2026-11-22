@@ -83,16 +83,34 @@ Gamepad → Controlador de juego (UE C++)
 | 0. Fundamentos | MuJoCo + Gymnasium + SB3 (opcional, solo para aprender) | — | Mac | Opcional, en pausa |
 | 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS | I1–I4 ✅ |
 | 2. Modelo preentrenado | Anatomical SOMA tracker en MuJoCo | Sigue clips sin caer | Mac | ✅ 10/10 clips |
-| **F. Física del balón** | Modelo y calibración del balón y la cancha (ver arriba) + escena humanoide + balón en MuJoCo | Todas las pruebas de física dentro de tolerancia | Mac, $0 | **Siguiente** |
-| 3. Locomoción comandada | Steering con el prior GPC: caminar/correr/girar/frenar hacia un objetivo | Llega a un objetivo a 5 m (±0,5 m) en < 4 s, 90% | AWS (GPU) | Espera cuota |
-| 4. Balón B0–B5 | Escalera de habilidades con balón | Métrica por nivel en MuJoCo | AWS + compuerta Mac | |
+| **3a. ¿El cuerpo puede hacerlo?** | Batería de funciones básicas del futbolista (abajo): el tracker imita clips de cada habilidad en MuJoCo | ≥ 90% de los clips de cada habilidad sin caídas, error de posición < 10 cm | Mac, $0 | **Siguiente** (necesita acceso a BONES-SEED) |
+| **3b. Hacerlo cuando se le pide** | Interfaz de comandos: velocidad y dirección (steering con el prior GPC), parar, girar, saltar, patear al aire | Cumple cada comando con tolerancia (abajo) en 90% de los episodios | AWS (GPU) | Espera cuota |
+| **3c. Robustez** | Empujones, transiciones entre habilidades, levantarse | Sin caídas ante empujones moderados; se levanta en < 3 s | AWS + compuerta Mac | |
+| F. Física del balón | Balón y cancha calibrados (rebote, rodado, arrastre, Magnus, contacto pie-balón) | Pruebas de física dentro de tolerancia | Mac, $0 | Después de la Fase 3 |
+| 4. Balón B0–B5 | Moverse cerca, tocar, pisar, parar, empujar, patear | Métrica por nivel en MuJoCo | AWS + compuerta Mac | |
 | 5. Balón B6–B9 | Conducir, pasar, tirar, jugada completa | Métrica por nivel en MuJoCo | AWS + compuerta Mac | |
-| 6. Runtime en Unreal | Plugin MuJoCo en UE5, políticas ONNX vía NNE, malla sobre el cuerpo simulado | Jugador + balón comandados en vivo a ≥ 60 fps | Mac | Después de la funcionalidad |
-| 7. Realismo y vertical slice | Clips propios de futbolista, pulido de estilo, MetaHuman, cancha, gamepad, cámara | Partida jugable de 2 min | Mac + AWS | |
+| 6. Runtime en Unreal | Plugin MuJoCo en UE5, políticas ONNX vía NNE | Jugador + balón comandados en vivo a ≥ 60 fps | Mac | |
+| 7. Realismo y vertical slice | Clips propios, pulido de estilo, MetaHuman, cancha, gamepad | Partida jugable de 2 min | Mac + AWS | |
 | 8. Pulido y empaquetado | Rendimiento, build, trailer | Build en otra máquina | Mac | |
 | 9. Futuro | Licencias comerciales, más jugadores, portero | Proyecto aparte | — | |
 
-### Habilidades motoras (referencia; solo se prueban las que el fútbol necesita)
+### Funciones básicas del futbolista (Fase 3)
+Orden de prioridad para el fútbol. **Ya probado en MuJoCo (2026-11-22, clips de ejemplo, 10/10):** caminar,
+trotar con giro de 180°, trotar hacia atrás y frenar, salto vertical, salto lateral, caer y levantarse,
+agacharse, girar en el lugar.
+
+| Grupo | Habilidades | Comando (3b) y tolerancia |
+|---|---|---|
+| Postura | De pie estable, postura atlética (rodillas flexionadas) | Mantener 30 s sin caer |
+| Locomoción | Caminar, trotar, correr, **sprint** | Velocidad pedida ±10% |
+| Cambios de ritmo | Arrancar, **acelerar**, **frenar en seco** | 0 → 5 m/s en < 2 s; frenar de 5 m/s en < 1,5 m |
+| Cambios de dirección | Girar en el lugar, girar corriendo, **cortes de 45°/90°**, media vuelta | Rumbo pedido ±10° |
+| Desplazamientos | Lateral (*shuffle*), hacia atrás (*backpedal*), pasos cruzados | Velocidad y dirección ±15% |
+| Equilibrio | Un pie, **balanceo de pierna** (patada al aire), recuperar ante empujón | Sin caer |
+| Salto | Vertical (cabezazo), con carrera, aterrizaje estable | Aterriza sin caer en 95% |
+| Suelo | Caer de forma segura y **levantarse** | De pie en < 3 s |
+
+### Habilidades motoras (lista original, referencia)
 - Postura: de pie, recuperar equilibrio ante empujones.
 - Extremidades: poses objetivo, flexionar/extender, a distintas velocidades.
 - Equilibrio dinámico: pasar el peso, un pie, levantar el pie a distintas alturas y velocidades.

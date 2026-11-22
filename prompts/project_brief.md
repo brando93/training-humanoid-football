@@ -1,4 +1,4 @@
-# Prompt maestro — v4 (2026-11-22)
+# Prompt maestro — v4.1 (2026-11-22)
 
 Quiero que seas mi guía técnico y gestor de un proyecto personal de investigación y desarrollo cuyo
 **objetivo final es un minijuego de fútbol hiperrealista en Unreal Engine 5**: un jugador controlado
@@ -50,9 +50,11 @@ Detalle y estado en `docs/plan.md`.
 0. (Opcional) Fundamentos de RL en mi Mac.
 1. Infraestructura AWS + GitHub + Claude (etapas I1–I13).
 2. Modelo preentrenado (Anatomical SOMA) funcionando en MuJoCo. ✅
+3. Funciones básicas del futbolista, **antes de tocar el balón**: (a) comprobar que el cuerpo puede hacer
+   cada habilidad (correr, sprint, frenar, cortes, lateral, hacia atrás, saltar, un pie, patada al aire,
+   levantarse); (b) que la haga cuando se le pide (comandos con el prior GPC); (c) robustez ante empujones.
 F. Física del balón y la cancha en MuJoCo, calibrada contra valores reales (masa, rebote, rodado,
    arrastre aerodinámico, efecto Magnus, contacto pie-balón), con pruebas automáticas.
-3. Locomoción comandada (steering con el prior GPC) hacia un objetivo.
 4. Balón B0–B5: moverse cerca, tocar, pisar, parar, empujar, patear quieto.
 5. Balón B6–B9: conducir, recibir y pasar, tirar a portería, jugada completa.
 6. Runtime en Unreal: MuJoCo embebido, políticas ONNX, malla sobre el cuerpo simulado.

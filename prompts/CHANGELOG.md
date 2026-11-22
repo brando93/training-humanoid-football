@@ -2,6 +2,10 @@
 
 Cada cambio a un prompt se registra aquí: qué cambió, por qué y qué evidencia lo respalda.
 
+## 2026-11-22 (v4.1)
+- Brandon: antes del balón, el humanoide debe dominar las funciones básicas de un futbolista. La Fase 3
+  (cuerpo: poder hacerlo, hacerlo cuando se pide, robustez) pasa antes de la Fase F (física del balón).
+
 ## 2026-11-22 (v4)
 - `project_brief.md` v4: prioridad de Brandon → primero funcionalidad con balón y física realista,
   después realismo visual y Unreal. Nueva Fase F (física del balón) antes de las habilidades con balón;
