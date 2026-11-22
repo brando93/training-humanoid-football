@@ -1,0 +1,58 @@
+# --- Secretos: nunca al repo ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials
+credentials.json
+*.tfvars
+!*.tfvars.example
+.claude/settings.local.json
+
+# --- Datos con licencia (AMASS, SMPL) y artefactos pesados: viven en S3 ---
+data/*
+!data/README.md
+*.npz
+*.pkl
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.mp4
+*.bvh
+*.fbx
+outputs/
+runs/
+wandb/
+checkpoints/
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+.terraform.lock.hcl.bak
+
+# --- Packer ---
+packer_cache/
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# --- Sistema / editores ---
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
