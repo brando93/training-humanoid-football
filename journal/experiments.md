@@ -29,3 +29,10 @@ Formato de cada entrada:
 - Decisión: la ruta Isaac Lab → MuJoCo → Unreal es viable. El jerk y los picos de rotación son lo que hay que vigilar
   para el realismo. Siguiente: verlo en video y empezar la Fase 0.
 - Fase 0 medida: PPO ~4.900 pasos/s en el M3 Pro; "de pie" (300k) ~1 min.
+
+## 2026-11-22 — Primer video de SOMA en MuJoCo (Mac)
+- Grabado desde el visor de MuJoCo (`mjpython`, tecla L) con dos proyectiles (tecla J): 17,5 s a 30 fps.
+- Visual: sigue de cerca los marcadores de referencia; incluye un clip de levantarse del suelo; tras los proyectiles
+  sigue en pie (`OK` en todos los pasos). Cuadros en `docs/media/2026-11-22-soma-mujoco-frames.jpg`.
+- ProtoMotions también guarda el movimiento simulado (`.motion`): base para exportar animación a Unreal.
+- Pendiente: la nota de realismo (1–5) de Brandon.
