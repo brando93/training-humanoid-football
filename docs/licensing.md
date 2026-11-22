@@ -31,7 +31,7 @@ del paquete `isaacsim-kernel`). Puntos que nos afectan:
 | ProtoMotions, MuJoCo, SOMA-X (código) | Apache-2.0 | Sí |
 | Isaac Lab | BSD-3 (código); Isaac Sim con EULA propia | Solo se usa para entrenar, no va dentro del juego |
 | Checkpoints de NVIDIA (tracker, prior GPC) | NVIDIA Open Model License | Parece que sí, con aviso de licencia y guardrails. **Verificar el texto completo** |
-| BONES-SEED | Licencia propia de Bones Studio | **Sin confirmar** (Bones vende licencias comerciales) |
+| BONES-SEED (dataset crudo) | Licencia propia de Bones Studio | **Solo para elegibles**: (i) instituciones académicas sin fines de lucro, excluyendo a quien trabaje para una empresa comercial, o (ii) *Qualifying Startup* = empresa comercial con < US$1M de ingresos anuales. Un particular sin empresa no está cubierto. Ver nota abajo |
 | AMASS / SMPL | No comercial | No: no se usan |
 | Mocap propio (GVHMR) | Nuestro | Sí |
 | Unreal Engine 5 | EULA de Epic | Gratis hasta US$1M de ingresos brutos por producto; luego 5% |
@@ -39,3 +39,16 @@ del paquete `isaacsim-kernel`). Puntos que nos afectan:
 Para prototipo y portafolio todo sirve. Antes de vender: confirmar la NVIDIA Open Model License,
 obtener licencia comercial de BONES-SEED o reentrenar con mocap propio.
 No es asesoría legal.
+
+## Nota sobre BONES-SEED (2026-11-22)
+Al leer la licencia (`third_party/bones-seed/LICENSE.md`, pública) se encontró una **cláusula de elegibilidad**:
+quien no sea Usuario Académico ni *Qualifying Startup* no recibe ningún derecho y no debe acceder, descargar ni
+usar el dataset. Brandon es un particular y empleado de una empresa comercial, así que probablemente **no es
+elegible** salvo que actúe a través de una empresa propia con < US$1M de ingresos. Hugging Face devolvió 403
+(acceso no aprobado): **no se descargó ningún dato del dataset**, solo la licencia y el README públicos.
+Decisión pendiente de Brandon. Mientras tanto no se usa BONES-SEED crudo.
+
+- Los checkpoints de NVIDIA (entrenados con BONES-SEED) se usan bajo la NVIDIA Open Model License; su model card
+  aclara que esa licencia no da derechos sobre los datos de entrenamiento.
+- Los clips de ejemplo `*_bones_seed_mini.pt` que vienen en el repo de ProtoMotions derivan de BONES-SEED; sus
+  términos no están claros. Se usaron solo para evaluar en local.
