@@ -56,3 +56,6 @@ __pycache__/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Packer
+infra/packer/manifest.json
