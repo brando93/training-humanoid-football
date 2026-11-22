@@ -1,20 +1,61 @@
-# Plan del proyecto
+# Plan del proyecto — v3 (2026-11-22)
+
+**Objetivo final:** un minijuego de fútbol en **Unreal Engine 5**, con un jugador cuyo movimiento sale
+de la física (sin animaciones reproducidas) y se ve y se siente como un futbolista real, más un balón
+con física reglamentaria. Un jugador, un balón, una cancha pequeña, control con gamepad.
 
 Regla general: no se pasa a la siguiente fase o etapa sin la aprobación de Brandon.
 
-## Fases de entrenamiento
+## Arquitectura del juego (decisión de diseño)
 
-| Fase | Contenido | Éxito |
-|---|---|---|
-| 0. Fundamentos (Mac, gratis) | MuJoCo + Gymnasium + Stable-Baselines3: estar de pie, caminar, ver trampas de recompensa | Humanoide camina 10 s sin caer y se entiende por qué |
-| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte |
-| 2. Modelo preentrenado | MaskedMimic SMPL corriendo y comandado | Video con ≥ 5 habilidades con física |
-| 3. Batería motora | Pruebas automáticas: postura, extremidades, cuerpo completo, locomoción, robustez | Reporte pasa/falla por habilidad |
-| 4. Pulido artesanal | Ajuste fino con clips propios (GVHMR) y recompensas | Toda la batería en verde, incluido pre-fútbol |
-| 5. Balón B0–B5 | Calibrar el balón; conciencia, tocar, pisar, parar, empujar, patear quieto | Cada nivel cumple su métrica (B5: dirección < 10°, velocidad ±20%, 80%) |
-| 6. Conducción y pase B6–B7 | Conducir, recibir y pasar | Abierto (nivel investigación) |
-| 7. Demo | Video multiángulo, export FBX a Unreal, ONNX | Video final |
-| 8. Futuro | Juego básico en Unreal; datos y esqueleto comerciales | Proyecto aparte |
+```
+Gamepad → Controlador de juego (UE C++)
+            │  "corre hacia allá a 6 m/s", "pasa al punto X con fuerza Y"
+            ▼
+       Política de tarea (ONNX, vía NNE de Unreal)      ← entrenada con RL en AWS
+            ▼
+       Tracker / prior de movimiento (ONNX)             ← preentrenado (Anatomical SOMA + GPC)
+            ▼  objetivos PD de cada articulación, 30–60 Hz
+       MuJoCo embebido en Unreal (plugin C++ propio)    ← humanoide + balón + cancha
+            ▼  pose de cada cuerpo, cada frame
+       Skeletal mesh (MetaHuman/futbolista) retargeteado ← Unreal solo dibuja
+            ▼
+       Lumen, cámara, sonido, UI
+```
+
+- **La física del jugador y del balón corre en MuJoCo, no en Chaos.** Una política entrenada en un
+  motor falla en otro (brecha sim-to-sim); usar MuJoCo en el juego y en la validación la evita.
+  MuJoCo es Apache-2.0 y una librería en C fácil de embeber. No hay plugin oficial para Unreal:
+  lo escribimos (C++ delgado: cargar el MJCF, `mj_step`, leer poses).
+- **Unreal se encarga de lo visual:** malla de alta calidad retargeteada al esqueleto simulado,
+  iluminación, cámara, estadio, sonido. El resto del mundo (porterías, red, público) puede usar Chaos
+  siempre que no toque al jugador ni al balón.
+- **Inferencia de la política en Unreal con NNE (ONNX).** Un personaje a 30–60 Hz cabe en CPU.
+- **Cuerpo simulado: Anatomical SOMA** (tracker *"verified in MuJoCo"* por ProtoMotions). Plan B: SOMA23.
+
+## Entrenamiento y validación
+- **Prior y tracker preentrenados** de ProtoMotions (Isaac Lab), adaptados con GPC (PEFT: prior → SFT → RLFT con PPO).
+- **Entrenamiento de tareas** en Isaac Lab en AWS (GPU spot). Opción a evaluar en la Fase 2: el backend
+  Newton de ProtoMotions, cuya física es más cercana a MuJoCo, para reducir la brecha con el juego.
+- **Compuerta de MuJoCo:** ninguna política se da por buena hasta que pasa la misma batería de
+  pruebas en MuJoCo (lo que correrá en Unreal). Se automatiza en el reporte diario.
+- **Balón idéntico en ambos lados:** mismos parámetros y mismas pruebas de calibración (caída, rodado, golpe).
+
+## Fases
+
+| Fase | Contenido | Éxito | Dónde |
+|---|---|---|---|
+| 0. Fundamentos | MuJoCo + Gymnasium + SB3: estar de pie, caminar, trampas de recompensa | Camina 10 s sin caer y se entiende por qué | Mac, $0 |
+| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS |
+| 2. Modelo preentrenado | Anatomical SOMA tracker + prior GPC en Isaac Lab y en MuJoCo | Video con ≥ 5 habilidades; mismas habilidades estables en MuJoCo | AWS + Mac |
+| **2.5 Spike de runtime en Unreal** | Plugin MuJoCo en UE5, política ONNX vía NNE, malla siguiendo al cuerpo simulado, control con teclado | El jugador se mantiene de pie y camina comandado en vivo dentro de Unreal 60 s, a ≥ 60 fps | Mac, $0 |
+| 3. Batería motora | Pruebas automáticas (abajo) en Isaac y en MuJoCo | Reporte pasa/falla por habilidad en ambos | AWS + Mac |
+| 4. Pulido artesanal | Ajuste fino con clips propios de futbolista (GVHMR) y recompensas | Batería en verde, incluido pre-fútbol | AWS |
+| 5. Balón B0–B5 | Calibración del balón; conciencia, tocar, pisar, parar, empujar, patear quieto | Métrica por nivel (B5: dirección < 10°, velocidad ±20%, 80%) | AWS |
+| 6. Conducción y pase B6–B7 | Conducir, recibir y pasar | Abierto (nivel investigación) | AWS |
+| **7. Vertical slice del juego** | Cancha, portería, gamepad (moverse, sprint, conducir, pasar/tirar con potencia), cámara, MetaHuman futbolista, Lumen, sonido | Partida jugable de 2 min: conducir y tirar a portería con movimiento creíble | Mac |
+| 8. Pulido y empaquetado | Rendimiento, build empaquetado, video del juego | Build que corre en otra máquina + trailer | Mac |
+| 9. Futuro | Licencias comerciales (datos y modelos), más jugadores, portero | Proyecto aparte | — |
 
 ### Habilidades motoras (batería de la fase 3)
 - Postura: de pie, recuperar equilibrio ante empujones.
@@ -23,13 +64,26 @@ Regla general: no se pasa a la siguiente fase o etapa sin la aprobación de Bran
 - Cuerpo completo: sentadilla, brinco vertical y hacia adelante, aterrizaje estable.
 - Locomoción: caminar/correr a varias velocidades, lateral, hacia atrás, frenar, girar a distintas velocidades.
 - Robustez: levantarse tras caer, transiciones suaves, terreno irregular.
-- Pre-fútbol: patada al aire en un pie, cambios de dirección bruscos, frenar y arrancar.
+- Pre-fútbol: patada al aire en un pie, cambios de dirección bruscos, frenar y arrancar, postura de futbolista.
 
 ### Escalera con balón (fases 5–6)
 B0 moverse cerca sin tropezar · B1 tocar con la zona correcta del pie · B2 pisar y controlar ·
 B3 parar un balón que llega · B4 empujar con toques cortos · B5 patear balón quieto ·
 B6 conducir · B7 recibir y pasar.
 Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción; frenado de rodado calibrado.
+
+### Métricas de "se siente como juego"
+- Latencia de control: del botón al primer cambio visible < 100 ms.
+- Respuesta: tiempo de 0 a sprint, radio de giro a velocidad, tiempo de frenado.
+- Robustez jugable: caídas por minuto de juego ≈ 0 salvo contacto o tropiezo justificado.
+- Rendimiento: física + 2 inferencias ONNX < 4 ms por frame en el Mac M3 Pro.
+
+## Licencias (ver detalle en `docs/licensing.md` cuando exista)
+- Código: ProtoMotions, MuJoCo, SOMA-X → Apache-2.0. Unreal Engine: gratis hasta US$1M de ingresos, luego 5%.
+- Checkpoints de NVIDIA → NVIDIA Open Model License (parece permitir uso comercial con aviso y guardrails; **verificar el texto completo**).
+- BONES-SEED → licencia propia, uso comercial **no confirmado** (Bones vende licencias comerciales).
+- Mocap propio (GVHMR) → nuestro. Es la ruta segura para un juego comercial.
+- Prototipo y portafolio: todo sirve. Antes de vender algo: licencia comercial de Bones o reentrenar con mocap propio.
 
 ## Etapas de infraestructura
 
@@ -38,9 +92,9 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
 | I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM (launch template pasa a I4) | ✅ |
-| I4 | AMI con Packer (driver NVIDIA, Isaac Lab, ProtoMotions) | |
+| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | En curso |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
-| I6 | Reporte: HTML, gráficas, video, SES | |
+| I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | |
 | I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | |
 | I8 | Semana de prueba y conciliación de costos | |
 | I9 | Issue diario en GitHub | |
@@ -48,6 +102,11 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | I11 | Claude ejecutor (`@claude` → PR) | |
 | I12 | Gestor semanal y evals de prompts | |
 | I13 | Claude Code local con Bedrock + SSO | |
+
+## Estructura del repo (con Unreal)
+- `unreal/` — proyecto UE5 (se agrega en la Fase 2.5). Los assets binarios pesados van con Git LFS o fuera del repo.
+- `unreal/Plugins/MuJoCoRuntime/` — plugin C++: MuJoCo embebido + puente con NNE.
+- `export/` — exportar políticas a ONNX y el MJCF del jugador y la cancha para Unreal.
 
 ## Decisión: repo privado sin protección de rama (2026-11-22)
 GitHub Free no ofrece protección de rama ni push protection en repos privados. Se aceptó quedarse
@@ -58,7 +117,8 @@ privado sin pagar GitHub Pro. Controles que compensan:
 - Si el repo se hace público o se pasa a Pro, activar protección de `main` y push protection.
 
 ## Presupuesto (tope $50/mes)
-GPU spot g6.2xlarge ~2,1 h/día ≈ $29 · infraestructura ≈ $6 · Claude en Bedrock ≈ $6–8 · margen ≈ $7.
+GPU spot g6.2xlarge ~2,1 h/día ≈ $29 · infraestructura (incluida la AMI) ≈ $6 · Claude en Bedrock ≈ $6–8 · margen ≈ $7.
+Todo lo de Unreal corre en el Mac: $0.
 
 ## Horario
 Entrenamiento a las 10:00 de Costa Rica (16:00 UTC). Issue con el reporte hacia las 12:30.

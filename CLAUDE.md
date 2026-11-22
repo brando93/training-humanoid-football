@@ -1,10 +1,12 @@
 # CLAUDE.md — instrucciones para el agente del proyecto
 
 ## Qué es este proyecto
-Un humanoide simulado con física (control por torques/PD, sin animaciones reproducidas) que aprende
-habilidades motoras con estilo humano y, después, a interactuar con un balón de fútbol.
-Base: ProtoMotions + MaskedMimic preentrenado (humanoide SMPL). Plan completo en `docs/plan.md`;
-prompt maestro en `prompts/project_brief.md`.
+Objetivo final: un minijuego de fútbol hiperrealista en Unreal Engine 5, con un jugador cuyo
+movimiento sale de la física (control por torques/PD, sin animaciones reproducidas) y un balón con
+física reglamentaria. Para llegar ahí, el humanoide aprende habilidades motoras y luego a jugar con el balón.
+Base: ProtoMotions con Anatomical SOMA + tracker y prior GPC preentrenados. Runtime del juego: MuJoCo
+embebido en Unreal y políticas ONNX vía NNE, así que **toda política tiene que funcionar también en MuJoCo**.
+Plan completo en `docs/plan.md`; prompt maestro en `prompts/project_brief.md`.
 
 El dueño es Brandon: DevOps que está aprendiendo RL. Escríbele en español, explica los conceptos de RL
 de forma breve y práctica cuando aparezcan, y sé honesto si algo no es viable.
