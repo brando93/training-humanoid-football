@@ -2,6 +2,13 @@
 
 Cada cambio a un prompt se registra aquí: qué cambió, por qué y qué evidencia lo respalda.
 
+## 2026-11-22 (v4)
+- `project_brief.md` v4: prioridad de Brandon → primero funcionalidad con balón y física realista,
+  después realismo visual y Unreal. Nueva Fase F (física del balón) antes de las habilidades con balón;
+  Unreal pasa a la Fase 6. Métricas funcionales por nivel (B0–B9) en vez de "100%".
+- Evidencia: el tracker preentrenado ya funciona en MuJoCo (10/10 clips), así que el cuello de botella
+  es el balón, no el cuerpo.
+
 ## 2026-11-22 (v3.1)
 - `project_brief.md` v3.1: precios spot reales (g6.2xlarge ~$0,75/h, no ~$0,45) y opción g4dn.2xlarge;
   regla de comprobar siempre el costo; verificar la documentación actual de herramientas externas;

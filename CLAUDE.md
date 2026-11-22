@@ -35,9 +35,10 @@ de forma breve y práctica cuando aparezcan, y sé honesto si algo no es viable.
    así que esta regla depende de ti: trabaja siempre en una rama `claude/<tema>` y abre un PR.
    Un push a `main` de cualquier autor que no sea brando93 abre un issue de alerta (`guard-main.yml`).
 
-## Prioridad de calidad
-El movimiento tiene que verse humano, no robótico ni de muñeco de trapo. Una métrica buena con un
-movimiento feo no cuenta como éxito. Métricas de realismo: deslizamiento de pies, jerk articular,
+## Prioridad
+**Primero funcionalidad con física realista** (que juegue con el balón y que el balón se comporte como uno
+real), **después** realismo visual y Unreal. Un nivel de habilidad (B0–B9 en `docs/plan.md`) se da por
+dominado con ≥ 90% de éxito en MuJoCo con condiciones aleatorias. Métricas de realismo: deslizamiento de pies, jerk articular,
 caídas, puntuación del discriminador y la nota de realismo (1–5) que Brandon pone en los issues.
 
 ## Al analizar un reporte diario

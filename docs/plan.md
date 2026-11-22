@@ -1,10 +1,45 @@
-# Plan del proyecto — v3 (2026-11-22)
+# Plan del proyecto — v4 (2026-11-22)
+
+**Prioridad (decidida por Brandon el 2026-11-22):**
+1. **Funcionalidad:** un humanoide que sepa jugar con el balón (conducir, controlar, pasar, tirar)
+   con **física del balón y del cuerpo lo más realista posible**.
+2. **Después**, el realismo visual y la exportación a Unreal Engine 5 para el minijuego.
+
+Mientras tanto, el realismo visual del movimiento no se pule: basta con que el movimiento sea físico y funcional.
 
 **Objetivo final:** un minijuego de fútbol en **Unreal Engine 5**, con un jugador cuyo movimiento sale
-de la física (sin animaciones reproducidas) y se ve y se siente como un futbolista real, más un balón
-con física reglamentaria. Un jugador, un balón, una cancha pequeña, control con gamepad.
+de la física (sin animaciones reproducidas) y un balón con física reglamentaria. Un jugador, un balón,
+una cancha pequeña, control con gamepad.
 
 Regla general: no se pasa a la siguiente fase o etapa sin la aprobación de Brandon.
+
+## "Saber jugar con el balón" medible
+"100%" no es una métrica: se define por niveles con umbrales. Un nivel se da por dominado cuando
+cumple su métrica en ≥ 90% de los episodios **en MuJoCo** (la física del juego) con balón y condiciones
+aleatorias (masa, presión, césped, posición inicial).
+
+| Nivel | Habilidad | Métrica de dominio |
+|---|---|---|
+| B0 | Moverse alrededor del balón | Sin pisarlo ni tropezar |
+| B1 | Tocar con la zona correcta del pie | Interior / empeine / planta según se pida |
+| B2 | Pisar y controlar | Balón bajo control 3 s, sin caer |
+| B3 | Parar un balón que llega (primer control) | Queda a < 1 m del pie |
+| B4 | Empujar con toques cortos | Dirección < 15° |
+| B5 | Patear balón quieto, dirección y fuerza variables | Dirección < 10°, velocidad ±15% |
+| B6 | Conducir caminando y trotando | 20 m sin perderlo, cambios de dirección |
+| B7 | Recibir y pasar | Pase a < 1 m del objetivo |
+| B8 | Tiro a portería | Dentro del arco y fuerza pedida |
+| B9 | Secuencia: conducir → controlar → tirar | Jugada completa sin intervención |
+
+## Física del balón "hiperrealista" (Fase F, en el Mac)
+Lo que la mayoría de los motores no trae y hay que modelar explícitamente, igual en entrenamiento y en el juego:
+- Masa 0,41–0,45 kg, circunferencia 68–70 cm (reglamento), presión → rebote (coeficiente de restitución medido).
+- **Resistencia al rodar** sobre césped (sin esto rueda casi para siempre).
+- **Arrastre aerodinámico** (incluida la "crisis de arrastre" a alta velocidad) y **efecto Magnus** (balón con efecto).
+- Contacto pie-balón: fricción y rigidez del contacto calibradas (dirección y giro del balón al golpearlo).
+- Cada propiedad con su prueba automática contra valores de referencia publicados (caída, rodado, tiro con y sin efecto).
+- En Isaac Lab (PhysX) no hay aerodinámica: las fuerzas de arrastre y Magnus se aplican como fuerzas externas
+  con el mismo código en los dos simuladores, para que el balón se comporte igual al entrenar y al jugar.
 
 ## Arquitectura del juego (decisión de diseño)
 
@@ -43,21 +78,21 @@ Gamepad → Controlador de juego (UE C++)
 
 ## Fases
 
-| Fase | Contenido | Éxito | Dónde |
-|---|---|---|---|
-| 0. Fundamentos | MuJoCo + Gymnasium + SB3: estar de pie, caminar, trampas de recompensa | Camina 10 s sin caer y se entiende por qué | Mac, $0 |
-| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS |
-| 2. Modelo preentrenado | Anatomical SOMA tracker + prior GPC en Isaac Lab y en MuJoCo | Video con ≥ 5 habilidades; mismas habilidades estables en MuJoCo | AWS + Mac |
-| **2.5 Spike de runtime en Unreal** | Plugin MuJoCo en UE5, política ONNX vía NNE, malla siguiendo al cuerpo simulado, control con teclado | El jugador se mantiene de pie y camina comandado en vivo dentro de Unreal 60 s, a ≥ 60 fps | Mac, $0 |
-| 3. Batería motora | Pruebas automáticas (abajo) en Isaac y en MuJoCo | Reporte pasa/falla por habilidad en ambos | AWS + Mac |
-| 4. Pulido artesanal | Ajuste fino con clips propios de futbolista (GVHMR) y recompensas | Batería en verde, incluido pre-fútbol | AWS |
-| 5. Balón B0–B5 | Calibración del balón; conciencia, tocar, pisar, parar, empujar, patear quieto | Métrica por nivel (B5: dirección < 10°, velocidad ±20%, 80%) | AWS |
-| 6. Conducción y pase B6–B7 | Conducir, recibir y pasar | Abierto (nivel investigación) | AWS |
-| **7. Vertical slice del juego** | Cancha, portería, gamepad (moverse, sprint, conducir, pasar/tirar con potencia), cámara, MetaHuman futbolista, Lumen, sonido | Partida jugable de 2 min: conducir y tirar a portería con movimiento creíble | Mac |
-| 8. Pulido y empaquetado | Rendimiento, build empaquetado, video del juego | Build que corre en otra máquina + trailer | Mac |
-| 9. Futuro | Licencias comerciales (datos y modelos), más jugadores, portero | Proyecto aparte | — |
+| Fase | Contenido | Éxito | Dónde | Estado |
+|---|---|---|---|---|
+| 0. Fundamentos | MuJoCo + Gymnasium + SB3 (opcional, solo para aprender) | — | Mac | Opcional, en pausa |
+| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS | I1–I4 ✅ |
+| 2. Modelo preentrenado | Anatomical SOMA tracker en MuJoCo | Sigue clips sin caer | Mac | ✅ 10/10 clips |
+| **F. Física del balón** | Modelo y calibración del balón y la cancha (ver arriba) + escena humanoide + balón en MuJoCo | Todas las pruebas de física dentro de tolerancia | Mac, $0 | **Siguiente** |
+| 3. Locomoción comandada | Steering con el prior GPC: caminar/correr/girar/frenar hacia un objetivo | Llega a un objetivo a 5 m (±0,5 m) en < 4 s, 90% | AWS (GPU) | Espera cuota |
+| 4. Balón B0–B5 | Escalera de habilidades con balón | Métrica por nivel en MuJoCo | AWS + compuerta Mac | |
+| 5. Balón B6–B9 | Conducir, pasar, tirar, jugada completa | Métrica por nivel en MuJoCo | AWS + compuerta Mac | |
+| 6. Runtime en Unreal | Plugin MuJoCo en UE5, políticas ONNX vía NNE, malla sobre el cuerpo simulado | Jugador + balón comandados en vivo a ≥ 60 fps | Mac | Después de la funcionalidad |
+| 7. Realismo y vertical slice | Clips propios de futbolista, pulido de estilo, MetaHuman, cancha, gamepad, cámara | Partida jugable de 2 min | Mac + AWS | |
+| 8. Pulido y empaquetado | Rendimiento, build, trailer | Build en otra máquina | Mac | |
+| 9. Futuro | Licencias comerciales, más jugadores, portero | Proyecto aparte | — | |
 
-### Habilidades motoras (batería de la fase 3)
+### Habilidades motoras (referencia; solo se prueban las que el fútbol necesita)
 - Postura: de pie, recuperar equilibrio ante empujones.
 - Extremidades: poses objetivo, flexionar/extender, a distintas velocidades.
 - Equilibrio dinámico: pasar el peso, un pie, levantar el pie a distintas alturas y velocidades.
@@ -66,11 +101,8 @@ Gamepad → Controlador de juego (UE C++)
 - Robustez: levantarse tras caer, transiciones suaves, terreno irregular.
 - Pre-fútbol: patada al aire en un pie, cambios de dirección bruscos, frenar y arrancar, postura de futbolista.
 
-### Escalera con balón (fases 5–6)
-B0 moverse cerca sin tropezar · B1 tocar con la zona correcta del pie · B2 pisar y controlar ·
-B3 parar un balón que llega · B4 empujar con toques cortos · B5 patear balón quieto ·
-B6 conducir · B7 recibir y pasar.
-Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción; frenado de rodado calibrado.
+### Escalera con balón (fases 4–5)
+Ver la tabla "Saber jugar con el balón medible" (B0–B9) y la Fase F para la física del balón.
 
 ### Métricas de "se siente como juego"
 - Latencia de control: del botón al primer cambio visible < 100 ms.
