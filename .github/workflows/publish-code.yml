@@ -1,0 +1,37 @@
+# En cada merge a main, empaqueta el repo y lo sube a S3.
+# La instancia de entrenamiento baja el código de ahí: nunca necesita un token de GitHub.
+name: publish-code
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: publish-code
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::611606529792:role/humanoid-gha-publish-code
+          aws-region: us-east-1
+
+      - name: Empaquetar y subir
+        env:
+          BUCKET: humanoid-artifacts-611606529792
+        run: |
+          git archive --format=tar.gz -o code.tar.gz HEAD
+          aws s3 cp code.tar.gz "s3://${BUCKET}/code/releases/${GITHUB_SHA}.tar.gz"
+          aws s3 cp code.tar.gz "s3://${BUCKET}/code/latest.tar.gz"
+          echo "${GITHUB_SHA}" > latest.sha
+          aws s3 cp latest.sha "s3://${BUCKET}/code/latest.sha"
