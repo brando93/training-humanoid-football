@@ -121,6 +121,8 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
   y `uv sync` no resuelve (choque con el extra `teleop`). Se instala con `uv pip install -r pyproject.toml --extra isaacsim`.
 - ProtoMotions choca con los pines de Isaac Sim (p. ej. `numpy==2.3.1`): se instala con `--overrides`
   de las versiones que dejó Isaac Lab, igual que hace Isaac Lab.
+- Compuerta de MuJoCo en el Mac (2026-11-22): tracker Anatomical SOMA 10/10 clips sin caídas, error medio 4,5 cm (`make soma-mujoco-eval`).
+- Entorno local: uno solo (Python 3.12) para la Fase 0 y ProtoMotions con MuJoCo; descargas pesadas de a una y visibles.
 - torch queda en CUDA 13 (`cu130`): necesita driver NVIDIA 580 o posterior (la AMI trae 620.70.06).
 - El primer snapshot de la AMI (~107 GB) tardó ~40 min: Packer necesita `aws_polling` con más intentos.
 - El snapshot es completo (no incremental) porque parte de una AMI de AWS: cada AMI que conservemos cuesta ~$5/mes.

@@ -2,7 +2,7 @@
 export AWS_PROFILE := humanoid
 export AWS_REGION := us-east-1
 
-.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup ami-kill-build
+.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup ami-kill-build local-env soma-mujoco-eval
 
 help:
 	@echo "make login          - inicia sesión SSO (perfil humanoid)"
@@ -12,6 +12,8 @@ help:
 	@echo "make ami-validate   - valida la plantilla de Packer"
 	@echo "make ami            - construye la AMI de entrenamiento (~\$$0,20 por build)"
 	@echo "make ami-cleanup    - borra AMIs viejas y sus snapshots (conserva la más reciente)"
+	@echo "make local-env      - instala el entorno local único (Fase 0 + ProtoMotions/MuJoCo)"
+	@echo "make soma-mujoco-eval - evalúa el tracker Anatomical SOMA en MuJoCo, en el Mac"
 
 login:
 	aws sso login --profile $(AWS_PROFILE)
@@ -43,3 +45,9 @@ ami-kill-build: check-account
 
 ami-cleanup: check-account
 	./infra/packer/scripts/cleanup-old-amis.sh 1
+
+local-env:
+	cd phase0_basics && UV_HTTP_TIMEOUT=60 UV_HTTP_RETRIES=5 uv sync --python 3.12 --group protomotions
+
+soma-mujoco-eval:
+	./scripts/soma-mujoco-eval.sh

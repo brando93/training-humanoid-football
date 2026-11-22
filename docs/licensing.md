@@ -12,6 +12,18 @@ Isaac Sim pide aceptar su licencia la primera vez que arranca. La AMI **no** la 
 3. `/opt/humanoid/env.sh` en la instancia solo exporta `OMNI_KIT_ACCEPT_EULA=YES` si ese parámetro vale `yes`.
    Para retirar la aceptación: `aws ssm delete-parameter --name /humanoid/isaacsim/eula_accepted --profile humanoid`.
 
+### Qué implica para este proyecto (resumen propio, no sustituye leer el texto)
+La licencia de Isaac Sim 6.0.0.1 es el **NVIDIA Omniverse License Agreement** (archivo `isaacsim/LICENSE.txt`
+del paquete `isaacsim-kernel`). Puntos que nos afectan:
+- Un individuo puede usarlo **también con fines comerciales**, colaborando con como máximo una persona más
+  sin comprar licencias de suscripción.
+- **No se puede redistribuir** Isaac Sim (ni copias en repositorios públicos). Por eso:
+  - la AMI `humanoid-trainer-*` debe quedarse **privada** (nunca compartirla ni hacerla pública);
+  - el repo no incluye ningún archivo de Isaac Sim.
+- Lo que generamos con él (videos, capturas, modelos y assets propios) sí se puede distribuir. Las políticas
+  entrenadas corren en el juego con MuJoCo, **sin Isaac Sim dentro del juego**.
+- No se permite hacer ingeniería inversa ni quitar avisos de copyright.
+
 ## Componentes y uso en un juego comercial
 
 | Componente | Licencia | ¿Juego comercial? |

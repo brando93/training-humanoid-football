@@ -20,3 +20,12 @@ Formato de cada entrada:
 - Corrección de costo: spot g6.2xlarge ~$0,75/h (no ~$0,45) → ~1,3 h/día; g4dn.2xlarge ~$0,26/h como alternativa a evaluar.
 - Build de la AMI: 3 intentos fallidos (variables de Packer, instalación de Isaac Lab, choque de numpy), cada uno
   terminado solo y con costo de centavos. Gasto del mes tras el día: $0,28.
+
+## 2026-11-22 — Compuerta de MuJoCo en el Mac (primer resultado real)
+- Hipótesis: el tracker preentrenado de Anatomical SOMA (entrenado en Isaac Lab) se sostiene en MuJoCo, la física del juego.
+- Cambio: entorno local único (Python 3.12) + `make soma-mujoco-eval`, en CPU y sin GPU.
+- Resultado: 10/10 clips de BONES-SEED (mini) sin caídas; error de posición medio 4,5 cm (máx. 14 cm);
+  rotación 0,19 rad (~11°) de media, 0,75 rad de máximo; error articular medio 0,11 rad; 7,7% de cuadros con jerk alto.
+- Decisión: la ruta Isaac Lab → MuJoCo → Unreal es viable. El jerk y los picos de rotación son lo que hay que vigilar
+  para el realismo. Siguiente: verlo en video y empezar la Fase 0.
+- Fase 0 medida: PPO ~4.900 pasos/s en el M3 Pro; "de pie" (300k) ~1 min.

@@ -1,17 +1,48 @@
+# Entorno local único (Mac, Python 3.12, sin GPU) para:
+#   - Fase 0: fundamentos de RL con Gymnasium + Stable-Baselines3
+#   - Prueba del tracker Anatomical SOMA de ProtoMotions en MuJoCo (grupo "protomotions")
+# Un solo torch para todo: se descarga una vez.
 [project]
 name = "phase0-basics"
 version = "0.1.0"
-description = "Fase 0: fundamentos de RL con MuJoCo + Gymnasium + Stable-Baselines3 (corre en el Mac, sin GPU)"
+description = "Entorno local: Fase 0 (RL básico) y ProtoMotions en MuJoCo, en el Mac sin GPU"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "mujoco>=3.3",
+    "mujoco>=3.3,<4",
     "gymnasium[mujoco]>=1.2",
     "stable-baselines3>=2.6",
+    "torch>=2.6",
     "tensorboard>=2.18",
     "imageio[ffmpeg]>=2.36",
     "tqdm",
     "rich",
 ]
 
+[dependency-groups]
+# Requiere el clon en ../third_party/ProtoMotions (ver phase0_basics/README.md).
+# Versiones tomadas de requirements_mujoco.txt de ProtoMotions @ 13de0ccc.
+protomotions = [
+    "protomotions[mujoco]",
+    "onnxruntime",
+    "dm-control>=1.0",
+    "tensordict==0.9.0",
+    "wandb==0.23.0",
+    "lightning",
+    "hydra-core==1.3.2",
+    "typer>=0.6.1",
+    "transformers>=4.20.1",
+    "pandas",
+    "rtree>=1.2,<2",
+    "trimesh",
+    "scikit-image",
+    "easydict",
+    "moviepy",
+    "tensorboardX",
+]
+
 [tool.uv]
 package = false
+default-groups = []
+
+[tool.uv.sources]
+protomotions = { path = "../third_party/ProtoMotions", editable = true }
