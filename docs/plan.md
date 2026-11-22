@@ -36,7 +36,7 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | Etapa | Contenido | Estado |
 |---|---|---|
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
-| I2 | GitHub: repo, gitleaks, protección de main, OIDC | En curso |
+| I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | En curso (repo, gitleaks y alerta listos; falta OIDC) |
 | I3 | Terraform base: VPC sin NAT, S3, IAM, launch template | |
 | I4 | AMI con Packer (driver NVIDIA, Isaac Lab, ProtoMotions) | |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
@@ -48,6 +48,14 @@ Balón: 0,43 kg, radio 0,11 m; randomización de masa, radio, rebote y fricción
 | I11 | Claude ejecutor (`@claude` → PR) | |
 | I12 | Gestor semanal y evals de prompts | |
 | I13 | Claude Code local con Bedrock + SSO | |
+
+## Decisión: repo privado sin protección de rama (2026-11-22)
+GitHub Free no ofrece protección de rama ni push protection en repos privados. Se aceptó quedarse
+privado sin pagar GitHub Pro. Controles que compensan:
+- gitleaks en pre-commit local y en CI sobre todo el historial.
+- `guard-main.yml`: abre un issue si alguien distinto de brando93 hace push a `main`.
+- En I11, el workflow de Claude solo trabaja en ramas `claude/*`, con `@claude` limitado a brando93.
+- Si el repo se hace público o se pasa a Pro, activar protección de `main` y push protection.
 
 ## Presupuesto (tope $50/mes)
 GPU spot g6.2xlarge ~2,1 h/día ≈ $29 · infraestructura ≈ $6 · Claude en Bedrock ≈ $6–8 · margen ≈ $7.

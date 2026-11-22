@@ -1,0 +1,34 @@
+# El repo es privado en GitHub Free: no hay protección de rama.
+# Este workflow no puede bloquear un push a main, pero lo detecta: si alguien que no es
+# brando93 (por ejemplo, un bot o el workflow de Claude) hace push directo a main, abre un issue de alerta.
+name: guard-main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-actor:
+    if: github.actor != 'brando93'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Abrir issue de alerta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          SHA: ${{ github.sha }}
+          COMPARE: ${{ github.event.compare }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "⚠️ Push directo a main por $ACTOR" \
+            --body "Se hizo push a \`main\` sin pasar por un PR revisado.
+
+          - Autor del push: \`$ACTOR\`
+          - Commit: $SHA
+          - Cambios: $COMPARE
+
+          Revisa el cambio y, si no lo autorizaste, reviértelo con \`git revert $SHA\`."

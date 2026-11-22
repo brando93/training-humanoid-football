@@ -23,7 +23,10 @@ de forma breve y práctica cuando aparezcan, y sé honesto si algo no es viable.
 6. **Un cambio por PR**, con la hipótesis escrita ("cambio X para mover la métrica Y") y la entrada
    correspondiente en `journal/experiments.md`.
 7. **No hagas merge, no apliques Terraform y no toques `infra/`, `.github/` ni el presupuesto**
-   sin aprobación explícita: esos cambios los revisa Brandon (CODEOWNERS).
+   sin aprobación explícita: esos cambios los revisa Brandon.
+8. **Nunca hagas push a `main`.** El repo es privado en GitHub Free y no tiene protección de rama,
+   así que esta regla depende de ti: trabaja siempre en una rama `claude/<tema>` y abre un PR.
+   Un push a `main` de cualquier autor que no sea brando93 abre un issue de alerta (`guard-main.yml`).
 
 ## Prioridad de calidad
 El movimiento tiene que verse humano, no robótico ni de muñeco de trapo. Una métrica buena con un
