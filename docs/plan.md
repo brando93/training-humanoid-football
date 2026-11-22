@@ -83,7 +83,7 @@ Gamepad → Controlador de juego (UE C++)
 | 0. Fundamentos | MuJoCo + Gymnasium + SB3 (opcional, solo para aprender) | — | Mac | Opcional, en pausa |
 | 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS | I1–I4 ✅ |
 | 2. Modelo preentrenado | Anatomical SOMA tracker en MuJoCo | Sigue clips sin caer | Mac | ✅ 10/10 clips |
-| **3a. ¿El cuerpo puede hacerlo?** | Batería de funciones básicas del futbolista (abajo): el tracker imita clips de cada habilidad en MuJoCo | ≥ 90% de los clips de cada habilidad sin caídas, error de posición < 10 cm | Mac, $0 | **Siguiente** (necesita acceso a BONES-SEED) |
+| **3a. ¿El cuerpo puede hacerlo?** | Batería de funciones básicas del futbolista (abajo): el tracker imita clips de cada habilidad en MuJoCo | ≥ 90% de los clips de cada habilidad sin caídas, error de posición < 10 cm | Mac, $0 | ✅ Puede hacerlas todas; fiabilidad < 90% en carrera rápida, un pie y levantarse (ver `docs/reports/battery_3a.md`) |
 | **3b. Hacerlo cuando se le pide** | Interfaz de comandos: velocidad y dirección (steering con el prior GPC), parar, girar, saltar, patear al aire | Cumple cada comando con tolerancia (abajo) en 90% de los episodios | AWS (GPU) | Espera cuota |
 | **3c. Robustez** | Empujones, transiciones entre habilidades, levantarse | Sin caídas ante empujones moderados; se levanta en < 3 s | AWS + compuerta Mac | |
 | F. Física del balón | Balón y cancha calibrados (rebote, rodado, arrastre, Magnus, contacto pie-balón) | Pruebas de física dentro de tolerancia | Mac, $0 | Después de la Fase 3 |

@@ -36,3 +36,13 @@ Formato de cada entrada:
   sigue en pie (`OK` en todos los pasos). Cuadros en `docs/media/2026-11-22-soma-mujoco-frames.jpg`.
 - ProtoMotions también guarda el movimiento simulado (`.motion`): base para exportar animación a Unreal.
 - Pendiente: la nota de realismo (1–5) de Brandon.
+
+## 2026-11-22 — Fase 3a: batería de funciones básicas con clips de CMU
+- Hipótesis: el tracker preentrenado puede ejecutar las funciones básicas de un futbolista con datos que nunca vio.
+- Cambio: retargeting propio CMU (ASF/AMC) → Anatomical SOMA (`retarget/`), 55 clips, error IK ~3 cm; batería en
+  MuJoCo en paralelo (`retarget/run_battery_3a.py`).
+- Resultado: todas las 18 habilidades lograron éxito al menos una vez; patada de fútbol 6/6. Fiabilidad < 90% en
+  carrera rápida, trote→carrera, un pie y levantarse boca abajo. La evaluación es estocástica (resultados cambian
+  entre corridas). Clips del sujeto 143 (niño) y clips < 1 s descartados como pruebas injustas.
+- Decisión: pasar a 3b/3c (ajuste fino en GPU con estos clips + comandos) cuando AWS apruebe la cuota.
+  Pendientes locales: 5 repeticiones por clip para estadística fiable y suavizado del retargeting.

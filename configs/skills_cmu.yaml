@@ -1,15 +1,17 @@
 # Fase 3a: clips de CMU Motion Capture (http://mocap.cs.cmu.edu, uso libre: "may be copied, modified,
 # or redistributed without permission") para probar cada función básica del futbolista en MuJoCo.
+# Excluidos: sujeto 143 en carrera (niño de 1,38 m: al escalarlo a adulto corre a ~6,7 m/s) y clips de
+# menos de 1 s que empiezan en plena carrera. Ver docs/reports/battery_3a.md.
 # Formato: habilidad -> lista de trials (sujeto_trial). Se bajan con scripts/fetch_cmu.sh a data/cmu_raw/.
 postura_y_equilibrio:
   un_pie: [49_18, 49_19, 49_20]
   saltos_un_pie: [132_23, 132_24]
 locomocion:
-  correr_recto: [78_06, 102_05, 143_04]
-  trote_a_carrera: [127_04, 143_03]
+  correr_recto: [104_37, 104_48, 127_09]   # sin 78_06/102_05 (0,9 s, empiezan en carrera) ni sujeto 143
+  trote_a_carrera: [127_04, 104_01]
 cambios_de_ritmo:
-  arrancar: [104_06, 104_08, 143_03]
-  frenar_en_seco: [16_08, 16_57, 127_05, 143_02]
+  arrancar: [104_06, 104_08, 127_04]
+  frenar_en_seco: [16_08, 16_57, 127_05, 128_05]
   correr_parar_correr: [127_17, 127_19]
 cambios_de_direccion:
   corte_90_trote: [16_41, 16_42, 16_43, 16_44]
@@ -20,7 +22,7 @@ desplazamientos:
   lateral_corriendo: [127_13, 127_14]
   hacia_atras: [69_34, 76_11, 111_01]
 salto:
-  dos_pies: [124_11, 143_06]
+  dos_pies: [124_11, 143_06, 131_07]
   con_carrera: [127_21, 49_04]
 patada:
   patear_balon_futbol: [10_01, 10_02, 10_03, 10_05, 10_06, 11_01]
