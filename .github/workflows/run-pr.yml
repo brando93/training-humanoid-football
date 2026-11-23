@@ -1,0 +1,84 @@
+# Cuando una corrida termina (s3://.../reports/runs/<id>/DONE), publica sus videos en la rama `media`
+# (que solo guarda las últimas corridas) y abre el PR run/<id> con el reporte y el checklist actualizado.
+name: run-pr
+
+on:
+  schedule:
+    - cron: "37 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: run-pr
+  cancel-in-progress: false
+
+env:
+  BUCKET: humanoid-artifacts-611606529792
+  KEEP_MEDIA_RUNS: "10"
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::611606529792:role/humanoid-gha-runs
+          aws-region: us-east-1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Corridas terminadas sin PR
+        id: find
+        run: |
+          todo=""
+          for id in $(aws s3 ls "s3://$BUCKET/reports/runs/" | awk '/PRE/ {print $2}' | tr -d /); do
+            aws s3 ls "s3://$BUCKET/reports/runs/$id/DONE" >/dev/null 2>&1 || continue
+            n=$(gh pr list --state all --head "run/$id" --json number --jq length)
+            [ "$n" = "0" ] && todo="$todo $id"
+          done
+          echo "Pendientes:$todo"
+          echo "runs=$todo" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar videos y abrir PR
+        if: steps.find.outputs.runs != ''
+        run: |
+          pip install --quiet pyyaml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for id in ${{ steps.find.outputs.runs }}; do
+            # 1) Videos a la rama media: se reescribe como un solo commit con las últimas corridas.
+            rm -rf /tmp/media && git worktree add -f /tmp/media origin/media 2>/dev/null || git worktree add -f --orphan -b media-tmp /tmp/media
+            mkdir -p "/tmp/media/runs/$id"
+            aws s3 sync "s3://$BUCKET/reports/runs/$id/media/" "/tmp/media/runs/$id/" --only-show-errors
+            ( cd /tmp/media
+              ls -1d runs/*/ | sort | head -n -"$KEEP_MEDIA_RUNS" | xargs -r rm -rf
+              git checkout --orphan "media-new-$id" >/dev/null 2>&1
+              git add -A && git commit -qm "Media: últimas corridas (incluye $id)"
+              git push -qf origin "media-new-$id:media" )
+            git worktree remove --force /tmp/media
+            # 2) Rama y PR con el reporte y el checklist actualizado.
+            git checkout -q -B "run/$id" origin/main
+            mkdir -p "reports/runs/$id"
+            aws s3 sync "s3://$BUCKET/reports/runs/$id/report/" "reports/runs/$id/" --only-show-errors
+            label=$(python -c "import json; print(json.load(open('reports/runs/$id/metrics.json'))['label'])")
+            python retarget/update_checklist.py "reports/runs/$id/metrics.json" "$label"
+            git add "reports/runs/$id" docs/checklist_habilidades.md docs/checklist_history.json
+            git commit -qm "Corrida $id: reporte para review"
+            git push -q origin "run/$id"
+            { echo "> **Review de la corrida.** Mira los clips, copia el bloque de \"Tu review\" en **Review changes** y pon tu nota de naturalidad."
+              echo; cat "reports/runs/$id/README.md"; } > /tmp/body.md
+            gh pr create --base main --head "run/$id" --title "Corrida $id: review" --body-file /tmp/body.md
+          done

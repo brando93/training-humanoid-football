@@ -17,8 +17,8 @@ import mujoco
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[1]
-PM = REPO / "third_party" / "ProtoMotions"
-PY = REPO / "phase0_basics" / ".venv" / "bin" / "python"
+PM = Path(os.environ.get("PM_ROOT", REPO / "third_party" / "ProtoMotions"))  # en la instancia: /opt/humanoid/ProtoMotions
+PY = Path(os.environ.get("PY_BIN", REPO / "phase0_basics" / ".venv" / "bin" / "python"))  # en la instancia: /opt/humanoid/venv/bin/python
 CKPT = os.environ.get("CHECKPOINT", "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt")
 W, H, FPS = 960, 540, 30
 

@@ -1,0 +1,50 @@
+# Corrida diaria de entrenamiento (Fase 3b). Lanza UNA instancia GPU spot que entrena, mide, graba y sube
+# el reporte a S3; luego run-pr.yml abre el PR para la review de Brandon.
+# No lanza si hay un PR de corrida esperando review: el ciclo avanza al ritmo de las reviews y no gasta de más.
+# Seguros: launch template (apagado forzado 90 min) + freno de costos (Lambda) + bloqueo en el lanzador.
+name: daily-train
+
+on:
+  schedule:
+    - cron: "7 16 * * *" # 10:07 en Costa Rica (UTC-6)
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: daily-train
+  cancel-in-progress: false
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ¿Hay una corrida esperando review?
+        id: gate
+        run: |
+          pending=$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("run/"))] | length')
+          echo "PRs de corrida abiertos: $pending"
+          if [ "$pending" != "0" ]; then
+            echo "Hay una corrida esperando tu review: no se lanza otra." >> "$GITHUB_STEP_SUMMARY"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          role-to-assume: arn:aws:iam::611606529792:role/humanoid-gha-launcher
+          aws-region: us-east-1
+
+      - name: Lanzar corrida
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          id=$(scripts/launch-trainer.sh g6.2xlarge --run || scripts/launch-trainer.sh g4dn.2xlarge --run)
+          echo "Corrida lanzada: $id" | tee -a "$GITHUB_STEP_SUMMARY"

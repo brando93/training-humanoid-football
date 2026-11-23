@@ -161,11 +161,11 @@ Ver la tabla "Saber jugar con el balón medible" (B0–B9) y la Fase F para la f
 | I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM (launch template pasa a I4) | ✅ |
 | I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | ✅ AMI `ami-04f81edc1c266cea8` (snapshot 106,6 GB ≈ $5,33/mes); launch template `humanoid-trainer` (spot one-time, terminar al apagar, apagado forzado 90 min, disco cifrado que se borra); `scripts/launch-trainer.sh` prueba zonas por precio. Prueba L4: ~5.500 pasos/s con 2048 entornos, arranque ~13 min |
-| I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
-| I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | |
+| I5 | Job diario: launcher, scheduler, ledger, timeout duro | ✅ `daily-train.yml` (10:07 CST, se salta si hay review pendiente) + `train-3b.sh` + `launch-trainer.sh --run`; ledger en el freno de costos |
+| I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | ✅ como PR: `make_run_report.py` (GIF por habilidad en la rama `media`, checklist, comparación con el aprobado, costo); medición MuJoCo ×5 en la instancia. Sin SES por ahora (el PR notifica) |
 | I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | Freno ✅ `humanoid-cost-guard` (Lambda cada 10 min: corrida > 100 min, GPU/día > $3 o factura ≥ $45 → termina GPU y bloquea el lanzador); probado terminando una instancia real. Falta: aviso por correo al frenar |
 | I8 | Semana de prueba y conciliación de costos | |
-| I9 | Issue diario en GitHub | |
+| I9 | Issue diario en GitHub | ✅ reemplazado por un PR por corrida (`run-pr.yml`): review con nota de naturalidad 1–5 (`apply-review.yml`) y merge = modelo aprobado (`promote-run.yml`) |
 | I10 | Claude analista (Bedrock + OIDC) | |
 | I11 | Claude ejecutor (`@claude` → PR) | |
 | I12 | Gestor semanal y evals de prompts | |
