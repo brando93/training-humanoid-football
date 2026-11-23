@@ -95,6 +95,24 @@ Gamepad → Controlador de juego (UE C++)
 | 9. Futuro | Licencias comerciales, más jugadores, portero | Proyecto aparte | — | |
 
 ### Funciones básicas del futbolista (Fase 3)
+
+Estado al día, con checks calculados desde las mediciones: [checklist de habilidades](checklist_habilidades.md).
+Orden (Brandon, 2026-11-22): **etapa 1** moverse como un humano de forma natural con acciones básicas →
+**etapa 2** movimiento atlético para el fútbol (sin balón) → **etapa 3** balón. Un check exige "lo hace" **y** "natural".
+
+#### Naturalidad (criterio del check, evaluador en construcción)
+Se mide en MuJoCo sobre la simulación, comparando con el humano real del mismo clip:
+| Métrica | Qué detecta | Vara |
+|---|---|---|
+| Pies que patinan en contacto (cm/s) | Deslizamiento irreal | Cerca del humano real |
+| Suavidad (jerk normalizado, sim vs. referencia) | Temblor o movimientos robóticos | ≤ referencia + margen |
+| Fuerzas articulares (% del tiempo en el límite del motor) | Movimientos "a fuerza bruta" | Rara vez en saturación |
+| Fuerza de reacción del suelo (× peso corporal) | Pisadas y aterrizajes irreales | Rangos humanos (caminar ~1,2×, correr ~2–3×) |
+| Nota visual de Brandon (1–5) sobre video | Lo que las métricas no ven | ≥ 4 |
+
+Hallazgo 2026-11-22: el jerk solo no basta. Los clips de referencia ya tienen ~20% de ventanas con jerk alto
+(hasta 67% en carrera, por ruido del mocap y del retargeting), y la simulación da menos jerk cuando falla pronto.
+Por eso la naturalidad combina varias métricas (`retarget/reference_jerk.py` da la referencia de jerk).
 Orden de prioridad para el fútbol. **Ya probado en MuJoCo (2026-11-22, clips de ejemplo, 10/10):** caminar,
 trotar con giro de 180°, trotar hacia atrás y frenar, salto vertical, salto lateral, caer y levantarse,
 agacharse, girar en el lugar.

@@ -24,7 +24,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 PM = REPO / "third_party" / "ProtoMotions"
 PY = REPO / "phase0_basics" / ".venv" / "bin" / "python"
-CKPT = "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt"
+# CHECKPOINT=ruta/al/tracker.ckpt para medir uno propio (Fase 3b); relativo a third_party/ProtoMotions o absoluto.
+CKPT = os.environ.get("CHECKPOINT", "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt")
 MOTIONS = Path(os.environ.get("MOTIONS_DIR", REPO / "data" / "cmu_motions")).resolve()
 METRICS = ["success_rate", "gt_error/mean", "gt_error/max", "gr_error/mean", "high_jerk_frame_percentage_mean", "num_evaluated"]
 

@@ -26,6 +26,5 @@ salto:
   con_carrera: [127_21, 49_04]
 patada:
   patear_balon_futbol: [10_01, 10_02, 10_03, 10_05, 10_06, 11_01]
-  patada_frontal: [135_04, 144_05]
 suelo:
   levantarse: [139_16, 139_17, 140_01, 140_03]
