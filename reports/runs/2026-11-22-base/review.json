@@ -1,0 +1,16 @@
+{
+ "run_id": "2026-11-22-base",
+ "pr": 3,
+ "reviewer": "brando93",
+ "date": "2026-11-23",
+ "url": "https://github.com/brando93/training-humanoid-football/pull/3#pullrequestreview-6017124456",
+ "naturalidad": {
+  "arrancar": 3,
+  "saltar_dos_pies": 2,
+  "levantarse": 3,
+  "trote_a_carrera": 1,
+  "correr_parar_correr": 3,
+  "gesto_patada": 2
+ },
+ "comentarios": "Arrancar desde quieto: al terminar parece que se va a caer.\nSalto con los dos pies: no parece natural, revisarlo.\nLevantarse del suelo: se ve bien pero falla a veces, revisarlo.\nTrote a carrera: falla muy mal.\nCorrer, parar y volver a correr: no se ve tan natural, mejorarlo.\nGesto de patada de fútbol: no parece natural, mejorarlo."
+}

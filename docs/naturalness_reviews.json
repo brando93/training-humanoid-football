@@ -1,0 +1,38 @@
+{
+ "arrancar": {
+  "nota": 3,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ },
+ "correr_parar_correr": {
+  "nota": 3,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ },
+ "gesto_patada": {
+  "nota": 2,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ },
+ "levantarse": {
+  "nota": 3,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ },
+ "saltar_dos_pies": {
+  "nota": 2,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ },
+ "trote_a_carrera": {
+  "nota": 1,
+  "run_id": "2026-11-22-base",
+  "date": "2026-11-23",
+  "pr": 3
+ }
+}

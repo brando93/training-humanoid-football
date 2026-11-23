@@ -1,6 +1,6 @@
 # Checklist de habilidades del futbolista
 
-Última medición: **Tracker NVIDIA preentrenado, sin ajuste** (2026-11-22), archivo `reports/runs/2026-11-22-base/metrics.json`.
+Última medición: **Tracker NVIDIA preentrenado, sin ajuste (punto de partida)** (2026-11-22), archivo `reports/runs/2026-11-22-base/metrics.json`.
 **Con check: 0 de 37.** Lo hacen (sin medir aún si es natural): 9.
 
 Orden: primero moverse como un humano de forma natural (etapa 1), luego lo atlético para el fútbol (etapa 2),
@@ -29,12 +29,12 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 | | **Correr** | | | | | |
 | ⬜ | Trotar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | 🟡 | Correr | 🟡 33% · 11.1 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 104_37 (0/5), 104_48 (0/5); error ≥ 10 cm |
-| 🟡 | Arrancar desde quieto | ✅ 100% · 6.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| 🟡 | Arrancar desde quieto | ✅ 100% · 6.0 cm | ❌ 3/5 | ⬜ | ⬜ | nota del 2026-11-23 (corrida 2026-11-22-base) |
 | 🟡 | Frenar hasta quedar quieto | ✅ 100% · 7.6 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
 | | **Saltar** | | | | | |
-| 🟡 | Saltar con los dos pies | 🟡 73% · 10.3 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 124_11 (1/5); error ≥ 10 cm |
+| 🟡 | Saltar con los dos pies | 🟡 73% · 10.3 cm | ❌ 2/5 | ⬜ | ⬜ | falla: 124_11 (1/5); error ≥ 10 cm; nota del 2026-11-23 (corrida 2026-11-22-base) |
 | | **Suelo** | | | | | |
-| 🟡 | Levantarse del suelo | 🟡 75% · 9.5 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 140_03 (0/5) |
+| 🟡 | Levantarse del suelo | 🟡 75% · 9.5 cm | ❌ 3/5 | ⬜ | ⬜ | falla: 140_03 (0/5); nota del 2026-11-23 (corrida 2026-11-22-base) |
 | ⬜ | Caer sin dañarse y recuperarse | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 
 ## Etapa 2 — Movimiento atlético para el fútbol (sin balón)
@@ -43,8 +43,8 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 |---|---|---|---|---|---|---|
 | | **Velocidad** | | | | | |
 | ⬜ | Esprintar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| ❌ | Pasar de trote a carrera | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 104_01 (0/5) |
-| 🟡 | Correr, parar y volver a correr | 🟡 50% · 8.8 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 127_17 (0/5) |
+| ❌ | Pasar de trote a carrera | ❌ 0% · — | ❌ 1/5 | ⬜ | ⬜ | falla: 104_01 (0/5); nota del 2026-11-23 (corrida 2026-11-22-base) |
+| 🟡 | Correr, parar y volver a correr | 🟡 50% · 8.8 cm | ❌ 3/5 | ⬜ | ⬜ | falla: 127_17 (0/5); nota del 2026-11-23 (corrida 2026-11-22-base) |
 | | **Agilidad** | | | | | |
 | 🟡 | Corte de 90° trotando | ✅ 100% · 9.4 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
 | 🟡 | Corte de 90° corriendo | 🟡 100% · 10.8 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
@@ -55,7 +55,7 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 | 🟡 | Saltos en un pie | ✅ 100% · 8.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
 | ⬜ | Saltar para cabecear | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Gesto técnico** | | | | | |
-| 🟡 | Gesto de patada de fútbol (sin balón) | ✅ 100% · 7.3 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| 🟡 | Gesto de patada de fútbol (sin balón) | ✅ 100% · 7.3 cm | ❌ 2/5 | ⬜ | ⬜ | nota del 2026-11-23 (corrida 2026-11-22-base) |
 
 ## Etapa 3 — El balón
 
