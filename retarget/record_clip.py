@@ -8,6 +8,7 @@ Uso (desde la raíz del repo):
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -18,7 +19,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 PM = REPO / "third_party" / "ProtoMotions"
 PY = REPO / "phase0_basics" / ".venv" / "bin" / "python"
-CKPT = "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt"
+CKPT = os.environ.get("CHECKPOINT", "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt")
 W, H, FPS = 960, 540, 30
 
 
@@ -30,7 +31,6 @@ def main() -> None:
     subprocess.run([str(PY), "protomotions/components/motion_lib.py", "--motion-path", str(motion.parent if motion.is_dir() else motion),
                     "--output-file", str(lib)], cwd=PM, check=True, capture_output=True)
     sys.path.insert(0, str(PM))
-    import os
     os.chdir(PM)
     from protomotions.simulator.mujoco import simulator as simmod
 
@@ -59,7 +59,30 @@ def main() -> None:
             st["r"].update_scene(self.data, camera=st["cam"])
             st["frames"].append(st["r"].render().copy())
         if st["t"] >= max_s:
-            raise SystemExit("recorded")
+            # ProtoMotions intercepta SystemExit y sale con error: se guarda el video aquí y se sale directo.
+            write_video(st["frames"])
+            lib.unlink(missing_ok=True)
+            print(out, flush=True)
+            os._exit(0)
+
+    def write_video(frames):
+        print(f"{len(frames)} cuadros", flush=True)
+        ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+                               "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(out)], stdin=subprocess.PIPE)
+        from PIL import Image, ImageDraw, ImageFont
+        font = ImageFont.load_default()
+        for f in ("/System/Library/Fonts/Supplemental/Arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
+            if os.path.exists(f):  # Mac / Ubuntu (instancia de entrenamiento)
+                font = ImageFont.truetype(f, 30)
+                break
+        for f in frames:
+            im = Image.fromarray(f)
+            d = ImageDraw.Draw(im)
+            d.rectangle([10, 10, 20 + d.textlength(label, font=font), 52], fill=(0, 0, 0))
+            d.text((15, 14), label, fill=(255, 255, 255), font=font)
+            ff.stdin.write(np.asarray(im).tobytes())
+        ff.stdin.close()
+        ff.wait()
 
     simmod.MujocoSimulator._physics_step = patched
     sys.argv = ["inference_agent.py", "--simulator", "mujoco", "--checkpoint", CKPT, "--motion-file", str(lib),
@@ -69,23 +92,7 @@ def main() -> None:
         runpy.run_path("protomotions/inference_agent.py", run_name="__main__")
     except SystemExit:
         pass
-    frames = state["frames"]
-    print(f"{len(frames)} cuadros", flush=True)
-    ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                           "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(out)], stdin=subprocess.PIPE)
-    from PIL import Image, ImageDraw, ImageFont
-    try:
-        font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 30)
-    except OSError:
-        font = ImageFont.load_default()
-    for f in frames:
-        im = Image.fromarray(f)
-        d = ImageDraw.Draw(im)
-        d.rectangle([10, 10, 20 + d.textlength(label, font=font), 52], fill=(0, 0, 0))
-        d.text((15, 14), label, fill=(255, 255, 255), font=font)
-        ff.stdin.write(np.asarray(im).tobytes())
-    ff.stdin.close()
-    ff.wait()
+    write_video(state["frames"])
     lib.unlink(missing_ok=True)
     print(out)
 

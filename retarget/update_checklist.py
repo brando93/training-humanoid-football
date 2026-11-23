@@ -33,11 +33,20 @@ GROUPS = {
     "suelo": "Suelo", "velocidad": "Velocidad", "agilidad": "Agilidad", "saltos": "Saltos", "gesto": "Gesto técnico",
     "fisica": "Física del balón", "basicas_B0_B5": "Básicas con balón (B0–B5)", "juego_B6_B9": "Juego (B6–B9)",
 }
-# Naturalidad: {id: True/False} cuando exista el evaluador (retarget/naturalness.py). Hoy: sin medir.
-NATURAL: dict[str, bool] = {}
+NATURAL_MIN = 4  # nota de Brandon (1-5) desde la cual cuenta como natural
+REVIEWS = REPO / "docs" / "naturalness_reviews.json"  # la escribe retarget/apply_review.py
+
+
+def load_natural() -> dict[str, dict]:
+    """Por ahora "natural" = la última nota visual de Brandon en un PR de corrida. Las métricas físicas
+    (pies que patinan, fuerzas, suavidad) se sumarán cuando exista el evaluador."""
+    return json.loads(REVIEWS.read_text()) if REVIEWS.exists() else {}
 
 
 def skill_stats(result: dict) -> dict[str, dict]:
+    if "skills" in result and "clips" not in result:  # metrics.json de reports/runs/<id>/ (para Actions)
+        return {k: {"rate": v["rate"], "err_cm": v["err_cm"], "n1": v["lo_hace"], "fail": v["fail"],
+                    "min_runs": MIN_RUNS, "clips": None} for k, v in result["skills"].items()}
     agg: dict[str, dict] = defaultdict(lambda: {"runs": 0, "ok": 0, "err": [], "clips": 0, "min_runs": 10**9, "fail": []})
     for key, c in result["clips"].items():
         s = agg[c["skill"]]
@@ -58,11 +67,12 @@ def skill_stats(result: dict) -> dict[str, dict]:
 
 
 def main() -> None:
-    src = Path(sys.argv[1])
+    src = Path(sys.argv[1]).resolve()
     label = sys.argv[2] if len(sys.argv) > 2 else src.stem
     stats = skill_stats(json.loads(src.read_text()))
     cfg = yaml.safe_load(CFG.read_text())
     hist = json.loads(HIST.read_text()) if HIST.exists() else {}
+    natural = load_natural()
     today = date.today().isoformat()
 
     rows, total, done, does = [], 0, 0, 0
@@ -76,8 +86,9 @@ def main() -> None:
                 total += 1
                 h = hist.setdefault(it["id"], {})
                 s = stats.get(it["eval"]) if it["eval"] else None
-                nat = NATURAL.get(it["id"])
-                nat_txt = "⬜" if s is None else ("✅" if nat else "❌" if nat is False else "⏳ sin medir")
+                r = natural.get(it["id"])
+                nat = None if r is None else r["nota"] >= NATURAL_MIN
+                nat_txt = "⬜" if s is None else ("⏳ sin nota" if r is None else f"{'✅' if nat else '❌'} {r['nota']}/5")
                 if s is None:
                     lo_hace, check = "⬜ sin prueba", "⬜"
                     detail = "Faltan clips" if stage != "etapa_3_balon" else "Pendiente de su etapa"
@@ -105,7 +116,9 @@ def main() -> None:
                     if s["min_runs"] < MIN_RUNS:
                         why.append(f"solo {s['min_runs']} corridas por clip")
                     if s["n1"] and nat is None:
-                        why.append("lo hace; falta medir naturalidad")
+                        why.append("lo hace; falta tu nota de naturalidad")
+                    if r is not None:
+                        why.append(f"nota del {r['date']} (corrida {r['run_id']})")
                     first = f"check desde {h['check_first']}" if full else ""
                     lost = f"⚠️ perdió el check el {h['check_lost']}" if h.get("check_lost") else ""
                     detail = "; ".join(x for x in [first, lost, *why] if x)
@@ -126,7 +139,7 @@ def main() -> None:
         f"y error de posición medio < {MAX_ERR_CM:.0f} cm. Formato: éxito · error medio.",
         "- **Natural:** se mueve como un humano real, medido con física: pies que no patinan, suavidad como la del "
         "humano real, fuerzas articulares y de contacto en rangos humanos, y la nota visual de Brandon. "
-        "⏳ = evaluador en construcción.",
+        f"Hoy cuenta tu nota en el review del PR de cada corrida: ≥ {NATURAL_MIN}/5 = natural. Las métricas físicas se sumarán después.",
         "- Después: **cuando se pide** (responde a órdenes) y **robusto** (aguanta empujones y variantes).",
         "- ✅ logrado · 🟡 a veces · ❌ no · ⬜ sin prueba todavía.",
     ]
