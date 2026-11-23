@@ -4,6 +4,7 @@
 # Uso: scripts/launch-trainer.sh g6.2xlarge          -> instancia vacía (pruebas), imprime el instance-id
 #      scripts/launch-trainer.sh g6.2xlarge --run    -> corrida diaria (scripts/remote/userdata-train.sh)
 #      CODE_KEY=code/dev/x.tar.gz ... --run           -> corrida con un paquete de código distinto de main
+#      RUN_MODE=preflight TRAIN_MIN=8 ... --run        -> prueba corta en GPU (curva + KL, sin medir ni grabar)
 set -euo pipefail
 TYPE="${1:?tipo de instancia, ej. g6.2xlarge}"
 MODE="${2:-}"
@@ -26,6 +27,7 @@ UD_ARGS=()
 if [[ "$MODE" == "--run" ]]; then
   { head -1 "$(dirname "$0")/remote/userdata-train.sh"
     echo "export CODE_KEY=${CODE_KEY:-code/latest.tar.gz}"
+    [[ -n "${RUN_MODE:-}" ]] && echo "export RUN_MODE=$RUN_MODE TRAIN_MIN=${TRAIN_MIN:-35} FT_EVAL_EVERY=${FT_EVAL_EVERY:-5} WARMUP_EPOCHS=${WARMUP_EPOCHS:-10}"
     tail -n +2 "$(dirname "$0")/remote/userdata-train.sh"; } > "$UD"
   UD_ARGS=(--user-data "file://$UD")
 fi

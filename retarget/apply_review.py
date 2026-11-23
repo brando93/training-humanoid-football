@@ -20,6 +20,9 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 AGG = REPO / "docs" / "naturalness_reviews.json"
 BLOCK = re.compile(r"```ya?ml\s*\n(.*?)```", re.S)
+# Etiquetas de defecto: cada una corresponde a un ajuste concreto (docs/review_guide.md).
+DEFECTOS = {"patina", "rigido", "brusco", "se_cae", "final_inestable", "postura_rara", "brazos_raros", "falla", "otro"}
+VS = {"mejor", "igual", "peor"}
 
 
 def gh(path: str) -> list | dict:
@@ -56,24 +59,38 @@ def main() -> None:
     if not found:
         raise SystemExit("No hay bloque `naturalidad:` del revisor todavía.")
     data, when, url = found
-    notas = {}
+    notas, detalle = {}, {}
     for k, v in (data.get("naturalidad") or {}).items():
-        if v in (None, ""):
+        entry = v if isinstance(v, dict) else {"nota": v}  # formato simple (solo la nota) o completo
+        nota, vs = entry.get("nota"), entry.get("vs_anterior")
+        defectos = [str(d).strip() for d in (entry.get("defectos") or [])]
+        if nota in (None, "") and not vs and not defectos:
             continue
-        n = int(v)
-        if not 1 <= n <= 5:
-            raise SystemExit(f"Nota fuera de rango para {k}: {v} (debe ser 1-5)")
-        notas[k] = n
+        if nota not in (None, ""):
+            nota = int(nota)
+            if not 1 <= nota <= 5:
+                raise SystemExit(f"Nota fuera de rango para {k}: {nota} (debe ser 1-5)")
+            notas[k] = nota
+        if vs and vs not in VS:
+            raise SystemExit(f"vs_anterior de {k} debe ser mejor, igual o peor (no '{vs}')")
+        malos = [d for d in defectos if d not in DEFECTOS]
+        if malos:
+            raise SystemExit(f"Etiquetas desconocidas en {k}: {malos}. Válidas: {sorted(DEFECTOS)}")
+        detalle[k] = {"nota": notas.get(k), "vs_anterior": vs, "defectos": defectos}
     review = {"run_id": run_id, "pr": args.pr, "reviewer": args.reviewer, "date": when[:10], "url": url,
-              "naturalidad": notas, "comentarios": (data.get("comentarios") or "").strip()}
+              "naturalidad": notas, "detalle": detalle, "comentarios": (data.get("comentarios") or "").strip()}
     out = REPO / "reports" / "runs" / run_id
     out.mkdir(parents=True, exist_ok=True)
     (out / "review.json").write_text(json.dumps(review, indent=1, ensure_ascii=False) + "\n")
     agg = json.loads(AGG.read_text()) if AGG.exists() else {}
-    for k, n in notas.items():
-        agg[k] = {"nota": n, "run_id": run_id, "date": review["date"], "pr": args.pr}
+    for k, d in detalle.items():
+        prev = agg.get(k, {})
+        agg[k] = {"nota": d["nota"] if d["nota"] is not None else prev.get("nota"), "vs_anterior": d["vs_anterior"],
+                  "defectos": d["defectos"], "run_id": run_id, "date": review["date"], "pr": args.pr}
+        if agg[k]["nota"] is None:
+            agg.pop(k)
     AGG.write_text(json.dumps(dict(sorted(agg.items())), indent=1, ensure_ascii=False) + "\n")
-    print(f"{len(notas)} notas de {args.reviewer} para {run_id}: {notas}")
+    print(f"{len(detalle)} habilidades revisadas por {args.reviewer} en {run_id}: {detalle}")
 
 
 if __name__ == "__main__":

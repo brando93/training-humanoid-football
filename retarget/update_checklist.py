@@ -119,6 +119,8 @@ def main() -> None:
                         why.append("lo hace; falta tu nota de naturalidad")
                     if r is not None:
                         why.append(f"nota del {r['date']} (corrida {r['run_id']})")
+                        if r.get("defectos"):
+                            why.append("defectos: " + ", ".join(r["defectos"]))
                     first = f"check desde {h['check_first']}" if full else ""
                     lost = f"⚠️ perdió el check el {h['check_lost']}" if h.get("check_lost") else ""
                     detail = "; ".join(x for x in [first, lost, *why] if x)
