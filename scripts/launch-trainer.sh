@@ -6,6 +6,14 @@ set -euo pipefail
 TYPE="${1:?tipo de instancia, ej. g4dn.2xlarge}"
 P=(--profile humanoid --region us-east-1)
 "$(dirname "$0")/check-aws-account.sh" >/dev/null
+# Freno de costos (infra/guard/cost_guard.py): si está activo, no se lanza nada.
+if b=$(aws ssm get-parameter "${P[@]}" --name /humanoid/guard/blocked --query Parameter.Value --output text 2>/dev/null); then
+  echo "FRENO DE COSTOS ACTIVO: $b" >&2
+  echo "El bloqueo diario se levanta solo mañana (UTC). Para levantarlo a mano: aws ssm delete-parameter --name /humanoid/guard/blocked --profile humanoid" >&2
+  exit 2
+fi
+aws s3 cp s3://humanoid-artifacts-611606529792/guard/ledger.json - "${P[@]}" 2>/dev/null \
+  | jq -r '.summary | "Gasto GPU hoy $\(.gpu_today_usd) | mes $\(.gpu_month_usd) | factura $\(.bill_month_usd)"' >&2 || true
 running=$(aws ec2 describe-instances "${P[@]}" --filters Name=tag:Name,Values=humanoid-trainer \
   Name=instance-state-name,Values=pending,running --query 'length(Reservations[].Instances[])' --output text)
 [[ "$running" == "0" ]] || { echo "Ya hay $running instancia(s) humanoid-trainer corriendo; no lanzo otra." >&2; exit 1; }
