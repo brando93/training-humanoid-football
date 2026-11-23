@@ -12,6 +12,7 @@ Pasos por trial:
 Uso (desde la raíz del repo, con el entorno local):
   phase0_basics/.venv/bin/python retarget/cmu_to_anatomic_soma.py --config configs/skills_cmu.yaml
   phase0_basics/.venv/bin/python retarget/cmu_to_anatomic_soma.py --trials 16_08 10_01
+  phase0_basics/.venv/bin/python retarget/cmu_to_anatomic_soma.py --smooth-hz 6 --out data/cmu_motions_s6
 """
 
 from __future__ import annotations
@@ -106,8 +107,49 @@ class SomaIK:
         return d.qpos.copy(), err
 
 
-def retarget_trial(ik: SomaIK, asf: Path, amc: Path) -> tuple[np.ndarray, dict]:
+def lowpass(pos: dict[str, np.ndarray], cutoff_hz: float, fps: float = CMU_FPS) -> dict[str, np.ndarray]:
+    """Filtro Butterworth de 4º orden, fase cero (filtfilt): quita el temblor del mocap sin retrasar el movimiento."""
+    from scipy.signal import butter, filtfilt
+
+    b, a = butter(4, cutoff_hz / (fps / 2))
+    pad = min(3 * max(len(a), len(b)), len(next(iter(pos.values()))) - 1)
+    return {k: filtfilt(b, a, v, axis=0, padlen=pad) for k, v in pos.items()}
+
+
+def clean_trial(pos: dict[str, np.ndarray], rot: dict[str, np.ndarray], max_speed: float = 12.0):
+    """Recorta cuadros sin datos de mocap: raíz en (0,0,0) exacto o saltos imposibles (> max_speed m/s).
+
+    Ej.: 104_01 trae ~1 s con la cadera en el origen y luego salta 2,4 m. Se queda el tramo continuo más largo.
+    """
+    root = pos["root"]
+    T = len(root)
+    bad = np.all(np.abs(root) < 1e-6, axis=1)
+    jump = np.zeros(T, dtype=bool)
+    jump[1:] = np.linalg.norm(np.diff(root, axis=0), axis=1) * CMU_FPS > max_speed
+    best, start = (0, 0), None
+    for i in range(T + 1):
+        ok = i < T and not bad[i] and not (jump[i] and start is not None)
+        if i < T and jump[i] and start is not None:  # el salto corta el tramo y empieza otro aquí
+            if i - start > best[1] - best[0]:
+                best = (start, i)
+            start = None if bad[i] else i
+            continue
+        if ok and start is None:
+            start = i
+        elif not ok and start is not None:
+            if i - start > best[1] - best[0]:
+                best = (start, i)
+            start = None
+    a, b = best
+    trimmed = (a, T - b)
+    return {k: v[a:b] for k, v in pos.items()}, {k: v[a:b] for k, v in rot.items()}, trimmed
+
+
+def retarget_trial(ik: SomaIK, asf: Path, amc: Path, smooth_hz: float = 0.0, smooth_out: bool = False) -> tuple[np.ndarray, dict]:
     pos, rot, skel = load_trial(asf, amc)
+    pos, rot, trimmed = clean_trial(pos, rot)
+    if smooth_hz > 0:
+        pos = lowpass(pos, smooth_hz)
     step = max(1, round(CMU_FPS / OUT_FPS))
     leg_cmu = np.linalg.norm(pos["lfemur"][0] - pos["lhipjoint"][0]) + np.linalg.norm(pos["ltibia"][0] - pos["lfemur"][0])
     scale = ik.leg_length / leg_cmu
@@ -124,10 +166,21 @@ def retarget_trial(ik: SomaIK, asf: Path, amc: Path) -> tuple[np.ndarray, dict]:
         q[3:7] = [xyzw[3], xyzw[0], xyzw[1], xyzw[2]]
         q, errs[k] = ik.solve_frame(targets, q, iters=150 if k == 0 else 25)
         qpos[k] = q
+    if smooth_out and smooth_hz > 0 and T > 15:
+        # Opcional: filtrar también la salida de la IK (cadera y 52 ángulos). Medido el 2026-11-22: a 6 Hz
+        # sube el deslizamiento de pies de 6,4 a 10,1 cm/s, porque mueve el pie apoyado. Apagado por defecto.
+        from scipy.signal import butter, filtfilt
+
+        b, a = butter(4, min(smooth_hz, 0.4 * OUT_FPS) / (OUT_FPS / 2))
+        qpos[:, 0:3] = filtfilt(b, a, qpos[:, 0:3], axis=0)
+        qpos[:, 7:] = np.clip(filtfilt(b, a, qpos[:, 7:], axis=0), ik.lo, ik.hi)
     info = {
         "frames": T,
         "duration_s": round(T / OUT_FPS, 2),
         "scale": round(float(scale), 3),
+        "trimmed_frames_start_end_120fps": list(trimmed),
+        "smooth_hz": smooth_hz,
+        "smooth_out": smooth_out,
         "ik_rmse_cm_mean": round(float(errs.mean() * 100), 2),
         "ik_rmse_cm_max": round(float(errs.max() * 100), 2),
     }
@@ -191,6 +244,9 @@ def main() -> None:
     ap.add_argument("--trials", nargs="*", help="Solo estos trials (ej. 16_08 10_01)")
     ap.add_argument("--raw", type=Path, default=REPO / "data" / "cmu_raw")
     ap.add_argument("--out", type=Path, default=REPO / "data" / "cmu_motions")
+    ap.add_argument("--smooth-hz", type=float, default=0.0,
+                    help="Frecuencia de corte del filtro pasa-bajos sobre el mocap (0 = sin filtro)")
+    ap.add_argument("--smooth-out", action="store_true", help="Filtrar también la salida de la IK (empeora el deslizamiento de pies)")
     args = ap.parse_args()
 
     cfg = yaml.load(args.config.read_text(), Loader=yaml.BaseLoader)  # todo como texto: 16_08 no es 1608
@@ -207,11 +263,13 @@ def main() -> None:
             seen.add((skill, t)); unique.append((skill, t))
 
     ik = SomaIK()
-    report = {}
+    rep_path = args.out / "retarget_report.json"
+    # Con --trials se actualizan solo esas entradas; no se pierde el resto del reporte.
+    report = json.loads(rep_path.read_text()) if args.trials and rep_path.exists() else {}
     for skill, t in unique:
         subj = t.split("_")[0]
         t0 = time.time()
-        qpos, info = retarget_trial(ik, args.raw / f"{subj}.asf", args.raw / f"{t}.amc")
+        qpos, info = retarget_trial(ik, args.raw / f"{subj}.asf", args.raw / f"{t}.amc", args.smooth_hz, args.smooth_out)
         info.update(export_motion(qpos, args.out / skill / f"cmu_{t}.motion"))
         info["seconds"] = round(time.time() - t0, 1)
         report[f"{skill}/{t}"] = info
