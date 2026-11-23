@@ -1,0 +1,72 @@
+# Cuando Brandon envía su review en un PR de corrida (rama run/*), guarda sus notas de naturalidad en el PR
+# y recalcula el checklist. Así, al hacer merge, el checklist ya incluye su evaluación.
+# Sin AWS ni secretos: solo GITHUB_TOKEN con permiso para escribir en la rama del PR.
+name: apply-review
+
+on:
+  pull_request_review:
+    types: [submitted, edited]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: apply-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: >-
+      (github.event_name == 'pull_request_review'
+        && startsWith(github.event.pull_request.head.ref, 'run/')
+        && github.event.review.user.login == 'brando93'
+        && contains(github.event.review.body, 'naturalidad:'))
+      || (github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && github.event.comment.user.login == 'brando93'
+        && contains(github.event.comment.body, 'naturalidad:'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+    steps:
+      - name: Rama del PR
+        id: pr
+        run: |
+          ref=$(gh api "repos/${{ github.repository }}/pulls/$PR" --jq .head.ref)
+          case "$ref" in run/*) ;; *) echo "No es un PR de corrida: $ref"; exit 0;; esac
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.pr.outputs.ref != ''
+        with:
+          ref: ${{ steps.pr.outputs.ref }}
+
+      - uses: actions/setup-python@v5
+        if: steps.pr.outputs.ref != ''
+        with:
+          python-version: "3.12"
+
+      - name: Guardar notas y recalcular el checklist
+        if: steps.pr.outputs.ref != ''
+        run: |
+          pip install --quiet pyyaml
+          run_id="${{ steps.pr.outputs.ref }}"; run_id="${run_id#run/}"
+          python retarget/apply_review.py --pr "$PR" --reviewer brando93
+          label=$(python -c "import json; print(json.load(open('reports/runs/$run_id/metrics.json'))['label'])")
+          python retarget/update_checklist.py "reports/runs/$run_id/metrics.json" "$label"
+
+      - name: Commit en la rama del PR
+        if: steps.pr.outputs.ref != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/naturalness_reviews.json docs/checklist_habilidades.md docs/checklist_history.json reports/runs
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Review de Brandon: notas de naturalidad y checklist (PR $PR)"
+          git push
