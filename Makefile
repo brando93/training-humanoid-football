@@ -2,7 +2,7 @@
 export AWS_PROFILE := humanoid
 export AWS_REGION := us-east-1
 
-.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup ami-kill-build local-env soma-mujoco-eval checklist
+.PHONY: help login check-account scan hooks ami ami-validate ami-cleanup ami-kill-build local-env soma-mujoco-eval checklist preflight
 
 help:
 	@echo "make login          - inicia sesión SSO (perfil humanoid)"
@@ -15,6 +15,7 @@ help:
 	@echo "make local-env      - instala el entorno local único (Fase 0 + ProtoMotions/MuJoCo)"
 	@echo "make soma-mujoco-eval - evalúa el tracker Anatomical SOMA en MuJoCo, en el Mac"
 	@echo "make checklist        - mide cada clip 5 veces en MuJoCo y actualiza docs/checklist_habilidades.md"
+	@echo "make preflight        - revisión previa (\$$0) obligatoria antes de una corrida de GPU con cambios"
 
 login:
 	aws sso login --profile $(AWS_PROFILE)
@@ -58,3 +59,6 @@ CHECKLIST_LABEL ?= Tracker NVIDIA preentrenado, sin ajuste
 checklist:
 	REPEATS=5 WORKERS=10 phase0_basics/.venv/bin/python retarget/eval_repeat.py repeat_latest
 	phase0_basics/.venv/bin/python retarget/update_checklist.py data/cmu_motions/repeat_latest.json "$(CHECKLIST_LABEL)"
+
+preflight:
+	./scripts/preflight.sh

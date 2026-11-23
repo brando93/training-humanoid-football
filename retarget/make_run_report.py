@@ -48,16 +48,40 @@ def pick_clips(result: dict, skill: str) -> list[tuple[str, str]]:
     return out
 
 
+GIF_VF = ("fps=8,scale={w}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=32:stats_mode=diff[p];"
+          "[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle")
+PREV_CKPT: str | None = None  # --prev-checkpoint: modelo aprobado, para grabarlo al lado del nuevo
+
+
+def _rec(motion: Path, mp4: Path, label: str, checkpoint: str | None) -> None:
+    env = dict(os.environ)
+    if checkpoint:
+        env["CHECKPOINT"] = checkpoint
+    subprocess.run([str(PY), str(REPO / "retarget" / "record_clip.py"), str(motion), str(mp4), label, str(MAX_SECONDS)],
+                   cwd=REPO, capture_output=True, env=env)
+
+
 def record(skill: str, trial: str, tag: str, title: str, out_dir: Path) -> tuple[str, str]:
+    """Clip del modelo nuevo; si hay modelo aprobado, lado a lado (izquierda aprobado, derecha nuevo)."""
     stem = f"{skill}__{trial}"
+    motion = MOTIONS / skill / f"cmu_{trial}.motion"
     mp4 = out_dir / f"{stem}.mp4"
-    label = f"{title} | CMU {trial} | {tag}"
-    subprocess.run([str(PY), str(REPO / "retarget" / "record_clip.py"), str(MOTIONS / skill / f"cmu_{trial}.motion"),
-                    str(mp4), label, str(MAX_SECONDS)], cwd=REPO, capture_output=True)
-    gif = out_dir / f"{stem}.gif"
-    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(mp4), "-vf",
-                    "fps=10,scale=320:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=48:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
-                    str(gif)], check=True)
+    if PREV_CKPT:
+        a, b = out_dir / f"{stem}__prev.mp4", out_dir / f"{stem}__new.mp4"
+        _rec(motion, a, f"APROBADO | {title} | {trial}", PREV_CKPT)
+        _rec(motion, b, f"NUEVO | {title} | {trial} | {tag}", None)
+        # Mismo largo: se rellena el más corto con su último cuadro.
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(a), "-i", str(b), "-filter_complex",
+                        "[0:v]tpad=stop=-1:stop_mode=clone[l];[1:v]tpad=stop=-1:stop_mode=clone[r];[l][r]hstack=shortest=0[v]",
+                        "-map", "[v]", "-t", str(MAX_SECONDS), "-c:v", "libx264", "-pix_fmt", "yuv420p", str(mp4)], check=True)
+        a.unlink(missing_ok=True)
+        b.unlink(missing_ok=True)
+        width = 480
+    else:
+        _rec(motion, mp4, f"{title} | CMU {trial} | {tag}", None)
+        width = 320
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(mp4), "-vf", GIF_VF.format(w=width),
+                    str(out_dir / f"{stem}.gif")], check=True)
     return stem, tag
 
 
@@ -70,7 +94,11 @@ def main() -> None:
     ap.add_argument("--prev-eval", type=Path)
     ap.add_argument("--cost", default="—", help="Costo de la corrida, ej. '$1,10'")
     ap.add_argument("--notes", default="", help="Texto libre: qué cambió en esta corrida")
+    ap.add_argument("--prev-checkpoint", help="Modelo aprobado: se graba al lado del nuevo para comparar")
+    ap.add_argument("--train-status", type=Path, help="safe_train.json de la corrida (evaluación interna)")
     args = ap.parse_args()
+    global PREV_CKPT
+    PREV_CKPT = args.prev_checkpoint
 
     result = json.loads(args.eval.read_text())
     stats = skill_stats(result)
@@ -105,9 +133,14 @@ def main() -> None:
         (media / f"{stem}.mp4").unlink(missing_ok=True)
 
     lo_hace = sum(1 for s in stats.values() if s["n1"])
+    lost = [k for k, s in stats.items() if not s["n1"] and prev.get(k, {}).get("n1")] if prev else []
+    gained = [k for k, s in stats.items() if s["n1"] and not prev.get(k, {}).get("n1")] if prev else []
+    # Rechazo automático: un modelo que pierde algo que el aprobado ya hacía no se le pide revisar a Brandon.
+    verdict = f"rechazada: perdió {', '.join(lost)}" if lost else "para revisar"
     L = [
         f"# Corrida {args.run_id}: {args.label}",
         "",
+        *([f"> ⛔ **Rechazada automáticamente:** perdió \"lo hace\" en {', '.join(lost)}. No hace falta revisarla.", ""] if lost else []),
         f"- **Costo de la corrida:** {args.cost}",
         f"- **Lo hace (100% de éxito, error < {MAX_ERR_CM:.0f} cm):** {lo_hace} habilidades medidas en MuJoCo, 5 corridas por clip.",
         f"- **Compilación de todos los clips:** [compilacion.mp4]({media_url(args.run_id, 'compilacion.mp4')}).",
@@ -115,10 +148,14 @@ def main() -> None:
     if args.notes:
         L += [f"- **Qué cambió:** {args.notes}"]
     if prev:
-        gained = [k for k, s in stats.items() if s["n1"] and not prev.get(k, {}).get("n1")]
-        lost = [k for k, s in stats.items() if not s["n1"] and prev.get(k, {}).get("n1")]
         L += [f"- **Ganó \"lo hace\":** {', '.join(gained) or 'ninguna'}", f"- **⚠️ Perdió \"lo hace\":** {', '.join(lost) or 'ninguna'}"]
-    L += ["", "Los clips son física real en MuJoCo: el humanoide se mueve solo con sus motores, imitando el mocap.", ""]
+    if args.train_status and args.train_status.exists():
+        st = json.loads(args.train_status.read_text())
+        evs = " → ".join(f"{e['score']:.3f}" for e in st.get("evals", []))
+        L += [f"- **Evaluación interna durante el entrenamiento (éxito):** {evs}. Se usa el mejor punto "
+              f"({st.get('best_score', 0):.3f}). Parada: {st.get('stopped')}."]
+    L += ["", "Los clips son física real en MuJoCo: el humanoide se mueve solo con sus motores, imitando el mocap."
+          + (" **Izquierda: modelo aprobado · derecha: modelo nuevo.**" if PREV_CKPT else ""), ""]
 
     review_ids = []
     for stage, groups in cfg.items():
@@ -141,15 +178,18 @@ def main() -> None:
     L += [
         "## Tu review",
         "",
-        "Copia este bloque en tu review (botón **Review changes**), pon una nota a cada habilidad y comenta lo que se vea mal.",
-        "- **5:** indistinguible de una persona · **4:** natural con detalles menores · **3:** se nota artificial",
-        "  · **2:** robótico o raro · **1:** antinatural. Deja vacío lo que no quieras calificar.",
+        "Copia este bloque en tu review (botón **Review changes**). Por habilidad: `nota` 1–5, `vs_anterior`",
+        "(mejor / igual / peor que la izquierda) y `defectos`. Deja vacío lo que no quieras calificar.",
+        "- **Nota:** 5 indistinguible de una persona · 4 natural con detalles menores · 3 se nota artificial ·",
+        "  2 robótico o raro · 1 antinatural (≥ 4 = natural).",
+        "- **Defectos:** `patina`, `rigido`, `brusco`, `se_cae`, `final_inestable`, `postura_rara`, `brazos_raros`,",
+        "  `falla`, `otro`. Cada uno dispara un ajuste concreto: ver [guía de review](../../../docs/review_guide.md).",
         "- Al enviar el review, en ~1 min un commit del bot guarda tus notas en el PR y recalcula el checklist.",
         "- Luego: **merge** = este modelo pasa a ser el oficial. **Cerrar sin merge** = se descarta.",
         "",
         "```yaml",
         "naturalidad:",
-        *[f"  {i}: " for i in review_ids],
+        *[f"  {i}: {{nota: , vs_anterior: , defectos: []}}" for i in review_ids],
         "comentarios: |",
         "  ",
         "```",
@@ -159,6 +199,7 @@ def main() -> None:
     (out / "README.md").write_text("\n".join(L) + "\n")
     (out / "metrics.json").write_text(json.dumps({
         "run_id": args.run_id, "label": args.label, "cost": args.cost, "eval_file": str(args.eval.name),
+        "verdict": verdict, "lost": lost, "gained": gained,
         "skills": {k: {"rate": round(v["rate"], 3), "err_cm": None if v["err_cm"] is None else round(v["err_cm"], 2),
                        "lo_hace": v["n1"], "fail": v["fail"]} for k, v in sorted(stats.items())},
     }, indent=1, ensure_ascii=False) + "\n")

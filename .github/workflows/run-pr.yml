@@ -1,5 +1,5 @@
 # Cuando una corrida termina (s3://.../reports/runs/<id>/DONE), publica sus videos en la rama `media`
-# (que solo guarda las últimas corridas) y abre el PR run/<id> con el reporte y el checklist actualizado.
+# (que solo guarda las últimas 7 corridas) y abre el PR run/<id> con el reporte y el checklist actualizado.
 name: run-pr
 
 on:
@@ -18,7 +18,7 @@ concurrency:
 
 env:
   BUCKET: humanoid-artifacts-611606529792
-  KEEP_MEDIA_RUNS: "10"
+  KEEP_MEDIA_RUNS: "7"
 
 jobs:
   open-pr:
@@ -80,5 +80,14 @@ jobs:
             git push -q origin "run/$id"
             { echo "> **Review de la corrida.** Mira los clips, copia el bloque de \"Tu review\" en **Review changes** y pon tu nota de naturalidad."
               echo; cat "reports/runs/$id/README.md"; } > /tmp/body.md
-            gh pr create --base main --head "run/$id" --title "Corrida $id: review" --body-file /tmp/body.md
+            verdict=$(python -c "import json; print(json.load(open('reports/runs/$id/metrics.json')).get('verdict', 'para revisar'))")
+            case "$verdict" in
+              rechazada*)
+                url=$(gh pr create --base main --head "run/$id" --title "⛔ Corrida $id: rechazada automáticamente" --body-file /tmp/body.md)
+                gh pr close "$url" --comment "Rechazada automáticamente ($verdict). Queda como registro; no hace falta revisarla."
+                ;;
+              *)
+                gh pr create --base main --head "run/$id" --title "Corrida $id: review" --body-file /tmp/body.md
+                ;;
+            esac
           done

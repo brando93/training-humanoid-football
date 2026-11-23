@@ -41,6 +41,13 @@ real), **después** realismo visual y Unreal. Un nivel de habilidad (B0–B9 en 
 dominado con ≥ 90% de éxito en MuJoCo con condiciones aleatorias. Métricas de realismo: deslizamiento de pies, jerk articular,
 caídas, puntuación del discriminador y la nota de realismo (1–5) que Brandon pone en los issues.
 
+**Corridas de GPU sin desperdicio (Brandon, 2026-11-23):** ninguna corrida puede terminar peor de lo que empezó.
+- Antes de lanzar con cualquier cambio de receta, entrenamiento o modelo de partida: `make preflight` ($0) debe pasar
+  y, si el cambio es de fondo, una prueba corta en GPU (`RUN_MODE=preflight`, ~$0,30).
+- Toda corrida usa `training/train_safe.py` (normalización congelada, calentamiento del crítico, tasa baja, freno si
+  empeora, mejor checkpoint). Sin mejora no se mide ni se graba; si pierde habilidades se rechaza sola.
+- Guía de review y etiquetas de defecto: [docs/review_guide.md](docs/review_guide.md).
+
 **Orden de trabajo (Brandon):** primero que se mueva como un humano, natural, con acciones básicas (etapa 1);
 luego lo atlético para el fútbol (etapa 2); luego el balón (etapa 3). No saltarse etapas.
 
