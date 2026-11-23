@@ -22,8 +22,8 @@ from datetime import date
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-PM = REPO / "third_party" / "ProtoMotions"
-PY = REPO / "phase0_basics" / ".venv" / "bin" / "python"
+PM = Path(os.environ.get("PM_ROOT", REPO / "third_party" / "ProtoMotions"))  # en la instancia: /opt/humanoid/ProtoMotions
+PY = Path(os.environ.get("PY_BIN", REPO / "phase0_basics" / ".venv" / "bin" / "python"))  # en la instancia: /opt/humanoid/venv/bin/python
 # CHECKPOINT=ruta/al/tracker.ckpt para medir uno propio (Fase 3b); relativo a third_party/ProtoMotions o absoluto.
 CKPT = os.environ.get("CHECKPOINT", "data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt")
 MOTIONS = Path(os.environ.get("MOTIONS_DIR", REPO / "data" / "cmu_motions")).resolve()

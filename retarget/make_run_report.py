@@ -23,7 +23,7 @@ from pathlib import Path
 import yaml
 
 REPO = Path(__file__).resolve().parents[1]
-PY = REPO / "phase0_basics" / ".venv" / "bin" / "python"
+PY = Path(os.environ.get("PY_BIN", REPO / "phase0_basics" / ".venv" / "bin" / "python"))  # en la instancia: /opt/humanoid/venv/bin/python
 MOTIONS = Path(os.environ.get("MOTIONS_DIR", REPO / "data" / "cmu_motions")).resolve()
 GH_REPO = os.environ.get("GH_REPO", "brando93/training-humanoid-football")
 MAX_SECONDS = 8.0

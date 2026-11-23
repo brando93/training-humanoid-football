@@ -5,8 +5,11 @@ set -euo pipefail
 
 EXPECTED_ACCOUNT="611606529792"
 PROFILE="${AWS_PROFILE:-humanoid}"
+PROF=(--profile "$PROFILE")
+# En GitHub Actions las credenciales vienen de OIDC (sin perfil); se verifica igual la cuenta.
+[[ "${GITHUB_ACTIONS:-}" == "true" ]] && { PROF=(); PROFILE="oidc"; }
 
-if ! actual="$(aws sts get-caller-identity --profile "$PROFILE" --query Account --output text 2>/dev/null)"; then
+if ! actual="$(aws sts get-caller-identity "${PROF[@]}" --query Account --output text 2>/dev/null)"; then
   echo "ERROR: no hay sesión válida para el perfil '$PROFILE'." >&2
   echo "Corre: aws sso login --profile $PROFILE" >&2
   exit 1

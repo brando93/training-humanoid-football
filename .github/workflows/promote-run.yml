@@ -1,0 +1,48 @@
+# Al hacer merge de un PR de corrida, ese modelo pasa a ser el APROBADO: la siguiente corrida parte de él.
+# copia s3://.../checkpoints/3b/candidates/<id>/ -> checkpoints/3b/approved/ y anota approved.json.
+name: promote-run
+
+on:
+  push:
+    branches: [main]
+    paths: ["reports/runs/*/metrics.json"]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: promote-run
+  cancel-in-progress: false
+
+env:
+  BUCKET: humanoid-artifacts-611606529792
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::611606529792:role/humanoid-gha-runs
+          aws-region: us-east-1
+
+      - name: Promover el modelo aprobado
+        run: |
+          ids=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- 'reports/runs/*/metrics.json' | cut -d/ -f3 | sort -u)
+          echo "Corridas en este merge: $ids"
+          last=$(echo "$ids" | tail -1)
+          [ -n "$last" ] || exit 0
+          if ! aws s3 ls "s3://$BUCKET/checkpoints/3b/candidates/$last/last.ckpt" >/dev/null 2>&1; then
+            echo "La corrida $last no tiene modelo candidato (p. ej. la medición base): nada que promover." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          aws s3 sync "s3://$BUCKET/checkpoints/3b/candidates/$last/" "s3://$BUCKET/checkpoints/3b/approved/" --delete --only-show-errors
+          printf '{"run_id": "%s", "commit": "%s", "date": "%s"}\n' "$last" "${{ github.sha }}" "$(date -u +%FT%TZ)" \
+            | aws s3 cp - "s3://$BUCKET/checkpoints/3b/approved.json"
+          echo "Modelo aprobado: $last" | tee -a "$GITHUB_STEP_SUMMARY"
