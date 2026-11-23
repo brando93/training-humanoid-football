@@ -81,7 +81,7 @@ Gamepad → Controlador de juego (UE C++)
 | Fase | Contenido | Éxito | Dónde | Estado |
 |---|---|---|---|---|
 | 0. Fundamentos | MuJoCo + Gymnasium + SB3 (opcional, solo para aprender) | — | Mac | Opcional, en pausa |
-| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS | I1–I4 ✅ |
+| 1. Infraestructura | Etapas I1–I13 (abajo) | Corrida diaria autónoma con reporte | AWS | I1–I4 ✅, I7 parcial (freno) |
 | 2. Modelo preentrenado | Anatomical SOMA tracker en MuJoCo | Sigue clips sin caer | Mac | ✅ 10/10 clips |
 | **3a. ¿El cuerpo puede hacerlo?** | Batería de funciones básicas del futbolista (abajo): el tracker imita clips de cada habilidad en MuJoCo | ≥ 90% de los clips de cada habilidad sin caídas, error de posición < 10 cm | Mac, $0 | ✅ Puede hacerlas todas; fiabilidad < 90% en carrera rápida, un pie y levantarse (ver `docs/reports/battery_3a.md`) |
 | **3b. Hacerlo cuando se le pide** | Interfaz de comandos: velocidad y dirección (steering con el prior GPC), parar, girar, saltar, patear al aire | Cumple cada comando con tolerancia (abajo) en 90% de los episodios | AWS (GPU) | Espera cuota |
@@ -142,10 +142,10 @@ Ver la tabla "Saber jugar con el balón medible" (B0–B9) y la Fase F para la f
 | I1 | Cuenta y seguridad: SSO, Budgets, CloudTrail, cuotas GPU, SES | ✅ (cuotas y SES pendientes de terceros) |
 | I2 | GitHub: repo, gitleaks, alerta de push a main, OIDC | ✅ |
 | I3 | Terraform base: VPC sin NAT, S3, IAM (launch template pasa a I4) | ✅ |
-| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | AMI ✅ `ami-04f81edc1c266cea8` (snapshot 106,6 GB ≈ $5,33/mes); launch template pendiente |
+| I4 | AMI con Packer (driver NVIDIA, Isaac Lab fijado, ProtoMotions, MuJoCo) + launch template | ✅ AMI `ami-04f81edc1c266cea8` (snapshot 106,6 GB ≈ $5,33/mes); launch template `humanoid-trainer` (spot one-time, terminar al apagar, apagado forzado 90 min, disco cifrado que se borra); `scripts/launch-trainer.sh` prueba zonas por precio. Prueba L4: ~5.500 pasos/s con 2048 entornos, arranque ~13 min |
 | I5 | Job diario: launcher, scheduler, ledger, timeout duro | |
 | I6 | Reporte: HTML, gráficas, video, SES; incluye la compuerta de MuJoCo | |
-| I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | |
+| I7 | Guardrails: Budget Action, sweeper, prueba de sobregasto | Freno ✅ `humanoid-cost-guard` (Lambda cada 10 min: corrida > 100 min, GPU/día > $3 o factura ≥ $45 → termina GPU y bloquea el lanzador); probado terminando una instancia real. Falta: aviso por correo al frenar |
 | I8 | Semana de prueba y conciliación de costos | |
 | I9 | Issue diario en GitHub | |
 | I10 | Claude analista (Bedrock + OIDC) | |

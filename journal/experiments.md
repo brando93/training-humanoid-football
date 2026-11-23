@@ -46,3 +46,19 @@ Formato de cada entrada:
   entre corridas). Clips del sujeto 143 (niño) y clips < 1 s descartados como pruebas injustas.
 - Decisión: pasar a 3b/3c (ajuste fino en GPU con estos clips + comandos) cuando AWS apruebe la cuota.
   Pendientes locales: 5 repeticiones por clip para estadística fiable y suavizado del retargeting.
+
+## 2026-11-22 — Fiabilidad ×5, suavizado descartado, GPU en AWS y freno de costos
+- Evaluación ×5 por clip (`retarget/eval_repeat.py`): 47/54 clips 100%. Fallas fijas en 4 clips de carrera cortos
+  que empiezan en plena carrera (104_01 además traía 0,46 s sin datos: `clean_trial` lo recorta, sigue fallando).
+  Inestables reales: 124_11, 144_05, 140_03.
+- Suavizado del retargeting: no baja el jerk de la simulación (14,9% → 16,1%) y empeora "un pie"; descartado.
+  El jerk viene del tracker → se ataca con ajuste fino (3b).
+- Video: `retarget/record_clip.py` graba el tracker en MuJoCo; compilación de 11 clips (39 s) para Brandon.
+- AWS: cuota G aprobada (8 vCPU spot y bajo demanda); EULA de Isaac Sim aceptada por Brandon (SSM).
+  g4dn.2xlarge sin capacidad spot en us-east-1a–d; g6.2xlarge (L4) sí en us-east-1d a $0,73/h.
+- Prueba L4 (`scripts/remote/gpu-bench.sh`, 2048 entornos, 30 iteraciones, 55 clips CMU): arranque ~13 min
+  (Isaac Sim + compilación de torch), luego ~12 s por época de 65.536 pasos → ~5.500 pasos/s (~20M/h).
+  Costo de la prueba ≈ $0,40.
+- Freno de costos desplegado y probado: con límite de 1 min terminó la instancia real; límite restaurado a 100 min.
+- Siguiente: Fase 3b (ajuste fino del tracker con los 55 clips desde el checkpoint preentrenado), medir con la
+  batería de MuJoCo antes/después. Mejorar arranque (caché de shaders/compilación en la AMI).

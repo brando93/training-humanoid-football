@@ -55,3 +55,27 @@ Para afirmar ≥ 90% hace falta evaluar cada clip varias veces (pendiente: 5 rep
   en GPU) entrenando sobre estos movimientos y con comandos.
 - Calidad del retargeting: buena (error de cinemática inversa ~3 cm). El jerk (~15–25% de cuadros) sale en parte
   del retargeting; un suavizado temporal es una mejora pendiente.
+
+## Fiabilidad medida con 5 corridas por clip (2026-11-22)
+`retarget/eval_repeat.py`: la inferencia no fija semilla, así que repetir da estadística real (275 corridas).
+
+- **47 de 54 clips salen bien las 5 veces.**
+- **Fallan siempre, con error idéntico (~25 cm):** 104_01, 104_37, 104_48 y 127_17. No es azar.
+  - 104_01 trae ~0,46 s sin datos (cadera en el origen) y luego un salto de 2,4 m. El retargeting ahora
+    recorta esos cuadros (`clean_trial`), pero el tramo que queda ya empieza en plena carrera y sigue
+    fallando (3/3 con 24,2 cm).
+  - 104_37, 104_48 y 127_17 son cortos (1–3 s) y empiezan a ~3,5–4 m/s. Como 16_08 y 127_09 también
+    empiezan en plena carrera y pasan, la causa exacta sigue abierta. Siguiente paso: buscar clips de
+    carrera más largos.
+- **Inestables de verdad:** 124_11 (dos pies, 20%), 144_05 (patada frontal, 60%), 140_03 (levantarse, 0%).
+
+### Suavizado del retargeting: descartado
+| Variante | Deslizamiento de pies | Jerk alto (sim) | Clips 100% |
+|---|---|---|---|
+| Sin filtro | 6,4 cm/s | 14,9% | 47/54 |
+| Filtro 6 Hz entrada + salida de la IK | 10,1 cm/s | — | — |
+| Filtro 10 Hz solo entrada | 6,1 cm/s | 16,1% | 46/55 |
+
+Filtrar no baja el jerk de la simulación (lo produce el tracker, no el temblor del mocap) y empeora
+"un pie" (100% → 73%). Queda apagado (`--smooth-hz 0` por defecto). La mejora de fiabilidad tiene que
+venir del ajuste fino del tracker con estos clips (Fase 3b, GPU).
