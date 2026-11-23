@@ -1,0 +1,56 @@
+{
+  "de_pie": {},
+  "un_pie": {},
+  "saltos_un_pie": {
+    "n1_first": "2026-11-22"
+  },
+  "caminar": {},
+  "trotar": {},
+  "correr_recto": {},
+  "sprint": {},
+  "trote_a_carrera": {},
+  "arrancar": {
+    "n1_first": "2026-11-22"
+  },
+  "frenar_en_seco": {
+    "n1_first": "2026-11-22"
+  },
+  "correr_parar_correr": {},
+  "girar_en_sitio": {},
+  "corte_90_trote": {
+    "n1_first": "2026-11-22"
+  },
+  "corte_90_carrera": {},
+  "giro_corriendo": {
+    "n1_first": "2026-11-22"
+  },
+  "lateral_defensivo": {
+    "n1_first": "2026-11-22"
+  },
+  "lateral_corriendo": {
+    "n1_first": "2026-11-22"
+  },
+  "hacia_atras": {
+    "n1_first": "2026-11-22"
+  },
+  "dos_pies": {},
+  "con_carrera": {},
+  "cabecear_salto": {},
+  "patear_balon_futbol": {
+    "n1_first": "2026-11-22"
+  },
+  "patada_frontal": {},
+  "levantarse": {},
+  "caer_seguro": {},
+  "F": {},
+  "B0": {},
+  "B1": {},
+  "B2": {},
+  "B3": {},
+  "B4": {},
+  "B5": {},
+  "B6": {},
+  "B7": {},
+  "B8": {},
+  "B9": {}
+}

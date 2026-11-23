@@ -9,7 +9,7 @@ sale de la física, sin animaciones reproducidas, primero aprendiendo habilidade
 - **Ciclo:** entrenar → evaluar → video y reporte en un issue → revisión humana → PR → siguiente corrida.
 - **Agente:** Claude (vía Amazon Bedrock con OIDC) analiza los reportes y propone cambios como PRs.
 
-Plan completo: [docs/plan.md](docs/plan.md) · Instrucciones del agente: [CLAUDE.md](CLAUDE.md)
+Plan completo: [docs/plan.md](docs/plan.md) · Qué ya sabe hacer: [checklist de habilidades](docs/checklist_habilidades.md) · Instrucciones del agente: [CLAUDE.md](CLAUDE.md)
 
 ## Primeros pasos (Mac)
 ```bash

@@ -95,6 +95,8 @@ Gamepad → Controlador de juego (UE C++)
 | 9. Futuro | Licencias comerciales, más jugadores, portero | Proyecto aparte | — | |
 
 ### Funciones básicas del futbolista (Fase 3)
+
+Estado al día, con checks calculados desde las mediciones: [checklist de habilidades](checklist_habilidades.md).
 Orden de prioridad para el fútbol. **Ya probado en MuJoCo (2026-11-22, clips de ejemplo, 10/10):** caminar,
 trotar con giro de 180°, trotar hacia atrás y frenar, salto vertical, salto lateral, caer y levantarse,
 agacharse, girar en el lugar.

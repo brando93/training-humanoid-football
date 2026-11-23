@@ -1,0 +1,61 @@
+# Checklist de habilidades genéricas del futbolista (fuente de docs/checklist_habilidades.md).
+# Los checks NO se ponen a mano: los marca retarget/update_checklist.py a partir de las mediciones en MuJoCo.
+#
+# Niveles (Fase 3 de docs/plan.md):
+#   n1 "Puede hacerlo"   (3a/3b): imita sus clips de mocap. Check = 100% de éxito en TODAS las corridas
+#                                  (>= 5 por clip) y error de posición medio < 10 cm.
+#   n2 "Cuando se pide"  (3c):    lo ejecuta ante una orden (dirección, velocidad, momento). Métrica pendiente.
+#   n3 "Robusto"         (3c):    lo mantiene con empujones, variantes y terreno. Métrica pendiente.
+#
+# eval: nombre de la habilidad en configs/skills_cmu.yaml (null = todavía sin clips ni prueba).
+cuerpo:
+  postura_y_equilibrio:
+    - {id: de_pie, nombre: "Estar de pie y mantener el equilibrio", eval: null}
+    - {id: un_pie, nombre: "Equilibrio en un pie", eval: un_pie}
+    - {id: saltos_un_pie, nombre: "Saltos en un pie", eval: saltos_un_pie}
+  locomocion:
+    - {id: caminar, nombre: "Caminar", eval: null}
+    - {id: trotar, nombre: "Trotar", eval: null}
+    - {id: correr_recto, nombre: "Correr recto", eval: correr_recto}
+    - {id: sprint, nombre: "Esprintar", eval: null}
+    - {id: trote_a_carrera, nombre: "Pasar de trote a carrera", eval: trote_a_carrera}
+  cambios_de_ritmo:
+    - {id: arrancar, nombre: "Arrancar desde quieto", eval: arrancar}
+    - {id: frenar_en_seco, nombre: "Frenar en seco", eval: frenar_en_seco}
+    - {id: correr_parar_correr, nombre: "Correr, parar y volver a correr", eval: correr_parar_correr}
+  cambios_de_direccion:
+    - {id: girar_en_sitio, nombre: "Girar en el sitio (pivote)", eval: null}
+    - {id: corte_90_trote, nombre: "Corte de 90° trotando", eval: corte_90_trote}
+    - {id: corte_90_carrera, nombre: "Corte de 90° corriendo", eval: corte_90_carrera}
+    - {id: giro_corriendo, nombre: "Giro corriendo", eval: giro_corriendo}
+  desplazamientos:
+    - {id: lateral_defensivo, nombre: "Desplazamiento lateral defensivo", eval: lateral_defensivo}
+    - {id: lateral_corriendo, nombre: "Lateral corriendo", eval: lateral_corriendo}
+    - {id: hacia_atras, nombre: "Hacia atrás", eval: hacia_atras}
+  salto:
+    - {id: dos_pies, nombre: "Salto con dos pies", eval: dos_pies}
+    - {id: con_carrera, nombre: "Salto con carrera", eval: con_carrera}
+    - {id: cabecear_salto, nombre: "Saltar para cabecear", eval: null}
+  patada_sin_balon:
+    - {id: patear_balon_futbol, nombre: "Gesto de patada de fútbol", eval: patear_balon_futbol}
+    - {id: patada_frontal, nombre: "Patada frontal", eval: patada_frontal}
+  suelo:
+    - {id: levantarse, nombre: "Levantarse del suelo", eval: levantarse}
+    - {id: caer_seguro, nombre: "Caer sin dañarse y recuperarse", eval: null}
+
+# Con balón: se miden en la Fase F (física) y las Fases 4-5, con las métricas de docs/plan.md.
+balon:
+  fisica:
+    - {id: F, nombre: "Física del balón validada (rebote, rodamiento, aire, efecto)", eval: null}
+  basicas_B0_B5:
+    - {id: B0, nombre: "Moverse alrededor del balón sin pisarlo ni tropezar", eval: null}
+    - {id: B1, nombre: "Tocar con la zona del pie que se pide", eval: null}
+    - {id: B2, nombre: "Pisar y controlar 3 s sin caer", eval: null}
+    - {id: B3, nombre: "Primer control: el balón queda a < 1 m", eval: null}
+    - {id: B4, nombre: "Empujar con toques cortos (dirección < 15°)", eval: null}
+    - {id: B5, nombre: "Patear balón quieto (dirección < 10°, velocidad ±15%)", eval: null}
+  juego_B6_B9:
+    - {id: B6, nombre: "Conducir 20 m caminando y trotando", eval: null}
+    - {id: B7, nombre: "Recibir y pasar (a < 1 m del objetivo)", eval: null}
+    - {id: B8, nombre: "Tiro a portería con la fuerza pedida", eval: null}
+    - {id: B9, nombre: "Jugada completa: conducir, controlar, tirar", eval: null}
