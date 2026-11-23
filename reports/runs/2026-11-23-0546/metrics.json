@@ -1,0 +1,180 @@
+{
+ "run_id": "2026-11-23-0546",
+ "label": "Fase 3b: ajuste fino del tracker con clips CMU",
+ "cost": "≈ $1,10 (g6.2xlarge spot, ~90 min)",
+ "eval_file": "repeat_2026-11-23-0546.json",
+ "skills": {
+  "arrancar": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "104_06 (0/5)",
+    "104_08 (0/5)",
+    "127_04 (0/5)"
+   ]
+  },
+  "con_carrera": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "127_21 (0/5)",
+    "49_04 (0/5)"
+   ]
+  },
+  "correr_parar_correr": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "127_17 (0/5)",
+    "127_19 (0/5)"
+   ]
+  },
+  "correr_recto": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "104_37 (0/5)",
+    "104_48 (0/5)",
+    "127_09 (0/5)"
+   ]
+  },
+  "corte_90_carrera": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "16_51 (0/5)",
+    "16_52 (0/5)",
+    "16_53 (0/5)",
+    "16_54 (0/5)"
+   ]
+  },
+  "corte_90_trote": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "16_41 (0/5)",
+    "16_42 (0/5)",
+    "16_43 (0/5)",
+    "16_44 (0/5)"
+   ]
+  },
+  "dos_pies": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "124_11 (0/5)",
+    "131_07 (0/5)",
+    "143_06 (0/5)"
+   ]
+  },
+  "frenar_en_seco": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "127_05 (0/5)",
+    "128_05 (0/5)",
+    "16_08 (0/5)",
+    "16_57 (0/5)"
+   ]
+  },
+  "giro_corriendo": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "127_15 (0/5)",
+    "127_16 (0/5)"
+   ]
+  },
+  "hacia_atras": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "111_01 (0/5)",
+    "69_34 (0/5)",
+    "76_11 (0/5)"
+   ]
+  },
+  "lateral_corriendo": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "127_13 (0/5)",
+    "127_14 (0/5)"
+   ]
+  },
+  "lateral_defensivo": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "78_24 (0/5)",
+    "78_25 (0/5)",
+    "78_26 (0/5)",
+    "78_27 (0/5)"
+   ]
+  },
+  "levantarse": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "139_16 (0/5)",
+    "139_17 (0/5)",
+    "140_01 (0/5)",
+    "140_03 (0/5)"
+   ]
+  },
+  "patear_balon_futbol": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "10_01 (0/5)",
+    "10_02 (0/5)",
+    "10_03 (0/5)",
+    "10_05 (0/5)",
+    "10_06 (0/5)",
+    "11_01 (0/5)"
+   ]
+  },
+  "saltos_un_pie": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "132_23 (0/5)",
+    "132_24 (0/5)"
+   ]
+  },
+  "trote_a_carrera": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "104_01 (0/5)",
+    "127_04 (0/5)"
+   ]
+  },
+  "un_pie": {
+   "rate": 0.0,
+   "err_cm": null,
+   "lo_hace": false,
+   "fail": [
+    "49_18 (0/5)",
+    "49_19 (0/5)",
+    "49_20 (0/5)"
+   ]
+  }
+ }
+}

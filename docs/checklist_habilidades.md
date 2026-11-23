@@ -1,7 +1,7 @@
 # Checklist de habilidades del futbolista
 
-Última medición: **Tracker NVIDIA preentrenado, sin ajuste** (2026-11-22), archivo `reports/runs/2026-11-22-base/metrics.json`.
-**Con check: 0 de 37.** Lo hacen (sin medir aún si es natural): 9.
+Última medición: **Fase 3b: ajuste fino del tracker con clips CMU** (2026-11-23), archivo `reports/runs/2026-11-23-0546/metrics.json`.
+**Con check: 0 de 37.** Lo hacen (sin medir aún si es natural): 0.
 
 Orden: primero moverse como un humano de forma natural (etapa 1), luego lo atlético para el fútbol (etapa 2),
 luego el balón (etapa 3). Los checks los calcula `retarget/update_checklist.py`; no se editan a mano.
@@ -18,23 +18,23 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 |---|---|---|---|---|---|---|
 | | **Postura y equilibrio** | | | | | |
 | ⬜ | Estar de pie quieto, relajado | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Equilibrio en un pie | 🟡 100% · 10.7 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
+| ❌ | Equilibrio en un pie | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 49_18 (0/5), 49_19 (0/5), 49_20 (0/5) |
 | ⬜ | Agacharse y volver a erguirse | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Caminar** | | | | | |
 | ⬜ | Caminar hacia adelante | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Caminar hacia atrás | ✅ 100% · 6.8 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Pasos laterales | ✅ 100% · 10.0 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm; lo hace; falta tu nota de naturalidad |
+| ❌ | Caminar hacia atrás | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 111_01 (0/5), 69_34 (0/5), 76_11 (0/5) |
+| ❌ | Pasos laterales | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 78_24 (0/5), 78_25 (0/5), 78_26 (0/5), 78_27 (0/5) |
 | ⬜ | Girar en el sitio | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | ⬜ | Caminar cambiando de dirección | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Correr** | | | | | |
 | ⬜ | Trotar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Correr | 🟡 33% · 11.1 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 104_37 (0/5), 104_48 (0/5); error ≥ 10 cm |
-| 🟡 | Arrancar desde quieto | ✅ 100% · 6.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Frenar hasta quedar quieto | ✅ 100% · 7.6 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ❌ | Correr | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 104_37 (0/5), 104_48 (0/5), 127_09 (0/5) |
+| ❌ | Arrancar desde quieto | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 104_06 (0/5), 104_08 (0/5), 127_04 (0/5) |
+| ❌ | Frenar hasta quedar quieto | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 127_05 (0/5), 128_05 (0/5), 16_08 (0/5), 16_57 (0/5) |
 | | **Saltar** | | | | | |
-| 🟡 | Saltar con los dos pies | 🟡 73% · 10.3 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 124_11 (1/5); error ≥ 10 cm |
+| ❌ | Saltar con los dos pies | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 124_11 (0/5), 131_07 (0/5), 143_06 (0/5) |
 | | **Suelo** | | | | | |
-| 🟡 | Levantarse del suelo | 🟡 75% · 9.5 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 140_03 (0/5) |
+| ❌ | Levantarse del suelo | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 139_16 (0/5), 139_17 (0/5), 140_01 (0/5), 140_03 (0/5) |
 | ⬜ | Caer sin dañarse y recuperarse | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 
 ## Etapa 2 — Movimiento atlético para el fútbol (sin balón)
@@ -43,19 +43,19 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 |---|---|---|---|---|---|---|
 | | **Velocidad** | | | | | |
 | ⬜ | Esprintar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| ❌ | Pasar de trote a carrera | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 104_01 (0/5) |
-| 🟡 | Correr, parar y volver a correr | 🟡 50% · 8.8 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 127_17 (0/5) |
+| ❌ | Pasar de trote a carrera | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 104_01 (0/5), 127_04 (0/5) |
+| ❌ | Correr, parar y volver a correr | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 127_17 (0/5), 127_19 (0/5) |
 | | **Agilidad** | | | | | |
-| 🟡 | Corte de 90° trotando | ✅ 100% · 9.4 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Corte de 90° corriendo | 🟡 100% · 10.8 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
-| 🟡 | Giro corriendo | ✅ 100% · 8.2 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Desplazamiento lateral rápido | ✅ 100% · 9.8 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ❌ | Corte de 90° trotando | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 16_41 (0/5), 16_42 (0/5), 16_43 (0/5), 16_44 (0/5) |
+| ❌ | Corte de 90° corriendo | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 16_51 (0/5), 16_52 (0/5), 16_53 (0/5), 16_54 (0/5) |
+| ❌ | Giro corriendo | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 127_15 (0/5), 127_16 (0/5) |
+| ❌ | Desplazamiento lateral rápido | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 127_13 (0/5), 127_14 (0/5) |
 | | **Saltos** | | | | | |
-| 🟡 | Salto con carrera | 🟡 100% · 10.5 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
-| 🟡 | Saltos en un pie | ✅ 100% · 8.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ❌ | Salto con carrera | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 127_21 (0/5), 49_04 (0/5) |
+| ❌ | Saltos en un pie | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 132_23 (0/5), 132_24 (0/5) |
 | ⬜ | Saltar para cabecear | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Gesto técnico** | | | | | |
-| 🟡 | Gesto de patada de fútbol (sin balón) | ✅ 100% · 7.3 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ❌ | Gesto de patada de fútbol (sin balón) | ❌ 0% · — | ⏳ sin nota | ⬜ | ⬜ | falla: 10_01 (0/5), 10_02 (0/5), 10_03 (0/5), 10_05 (0/5), 10_06 (0/5), 11_01 (0/5) |
 
 ## Etapa 3 — El balón
 
