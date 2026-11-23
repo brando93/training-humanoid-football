@@ -1,50 +1,57 @@
-# Checklist de habilidades genéricas del futbolista (fuente de docs/checklist_habilidades.md).
-# Los checks NO se ponen a mano: los marca retarget/update_checklist.py a partir de las mediciones en MuJoCo.
+# Checklist de habilidades (fuente de docs/checklist_habilidades.md). Orden de prioridad de Brandon:
+#   Etapa 1: moverse como un humano, de forma natural, con acciones básicas.
+#   Etapa 2: movimiento atlético orientado al fútbol (sin balón).
+#   Etapa 3: el balón.
+# No se pasa a una etapa sin dominar la anterior.
 #
-# Niveles (Fase 3 de docs/plan.md):
-#   n1 "Puede hacerlo"   (3a/3b): imita sus clips de mocap. Check = 100% de éxito en TODAS las corridas
-#                                  (>= 5 por clip) y error de posición medio < 10 cm.
-#   n2 "Cuando se pide"  (3c):    lo ejecuta ante una orden (dirección, velocidad, momento). Métrica pendiente.
-#   n3 "Robusto"         (3c):    lo mantiene con empujones, variantes y terreno. Métrica pendiente.
+# Los checks NO se ponen a mano: los marca retarget/update_checklist.py desde mediciones en MuJoCo.
+# Una habilidad tiene check solo si cumple las DOS columnas:
+#   "Lo hace":  imita sus clips con 100% de éxito en todas las corridas (>= 5 por clip) y error medio < 10 cm.
+#   "Natural":  se mueve como un humano real, medido con física (ver docs/plan.md, "Naturalidad"):
+#               pies que no patinan, suavidad comparable al humano real, fuerzas articulares y de contacto
+#               en rangos humanos, y la nota visual de Brandon. Evaluador en construcción.
 #
 # eval: nombre de la habilidad en configs/skills_cmu.yaml (null = todavía sin clips ni prueba).
-cuerpo:
+etapa_1_movimiento_humano:
   postura_y_equilibrio:
-    - {id: de_pie, nombre: "Estar de pie y mantener el equilibrio", eval: null}
+    - {id: de_pie, nombre: "Estar de pie quieto, relajado", eval: null}
     - {id: un_pie, nombre: "Equilibrio en un pie", eval: un_pie}
-    - {id: saltos_un_pie, nombre: "Saltos en un pie", eval: saltos_un_pie}
-  locomocion:
-    - {id: caminar, nombre: "Caminar", eval: null}
+    - {id: agacharse, nombre: "Agacharse y volver a erguirse", eval: null}
+  caminar:
+    - {id: caminar, nombre: "Caminar hacia adelante", eval: null}
+    - {id: caminar_atras, nombre: "Caminar hacia atrás", eval: hacia_atras}
+    - {id: caminar_lateral, nombre: "Pasos laterales", eval: lateral_defensivo}
+    - {id: girar_en_sitio, nombre: "Girar en el sitio", eval: null}
+    - {id: caminar_girando, nombre: "Caminar cambiando de dirección", eval: null}
+  correr:
     - {id: trotar, nombre: "Trotar", eval: null}
-    - {id: correr_recto, nombre: "Correr recto", eval: correr_recto}
-    - {id: sprint, nombre: "Esprintar", eval: null}
-    - {id: trote_a_carrera, nombre: "Pasar de trote a carrera", eval: trote_a_carrera}
-  cambios_de_ritmo:
+    - {id: correr, nombre: "Correr", eval: correr_recto}
     - {id: arrancar, nombre: "Arrancar desde quieto", eval: arrancar}
-    - {id: frenar_en_seco, nombre: "Frenar en seco", eval: frenar_en_seco}
-    - {id: correr_parar_correr, nombre: "Correr, parar y volver a correr", eval: correr_parar_correr}
-  cambios_de_direccion:
-    - {id: girar_en_sitio, nombre: "Girar en el sitio (pivote)", eval: null}
-    - {id: corte_90_trote, nombre: "Corte de 90° trotando", eval: corte_90_trote}
-    - {id: corte_90_carrera, nombre: "Corte de 90° corriendo", eval: corte_90_carrera}
-    - {id: giro_corriendo, nombre: "Giro corriendo", eval: giro_corriendo}
-  desplazamientos:
-    - {id: lateral_defensivo, nombre: "Desplazamiento lateral defensivo", eval: lateral_defensivo}
-    - {id: lateral_corriendo, nombre: "Lateral corriendo", eval: lateral_corriendo}
-    - {id: hacia_atras, nombre: "Hacia atrás", eval: hacia_atras}
-  salto:
-    - {id: dos_pies, nombre: "Salto con dos pies", eval: dos_pies}
-    - {id: con_carrera, nombre: "Salto con carrera", eval: con_carrera}
-    - {id: cabecear_salto, nombre: "Saltar para cabecear", eval: null}
-  patada_sin_balon:
-    - {id: patear_balon_futbol, nombre: "Gesto de patada de fútbol", eval: patear_balon_futbol}
-    - {id: patada_frontal, nombre: "Patada frontal", eval: patada_frontal}
+    - {id: frenar, nombre: "Frenar hasta quedar quieto", eval: frenar_en_seco}
+  saltar:
+    - {id: saltar_dos_pies, nombre: "Saltar con los dos pies", eval: dos_pies}
   suelo:
     - {id: levantarse, nombre: "Levantarse del suelo", eval: levantarse}
     - {id: caer_seguro, nombre: "Caer sin dañarse y recuperarse", eval: null}
 
-# Con balón: se miden en la Fase F (física) y las Fases 4-5, con las métricas de docs/plan.md.
-balon:
+etapa_2_atletico_futbol:
+  velocidad:
+    - {id: sprint, nombre: "Esprintar", eval: null}
+    - {id: trote_a_carrera, nombre: "Pasar de trote a carrera", eval: trote_a_carrera}
+    - {id: correr_parar_correr, nombre: "Correr, parar y volver a correr", eval: correr_parar_correr}
+  agilidad:
+    - {id: corte_90_trote, nombre: "Corte de 90° trotando", eval: corte_90_trote}
+    - {id: corte_90_carrera, nombre: "Corte de 90° corriendo", eval: corte_90_carrera}
+    - {id: giro_corriendo, nombre: "Giro corriendo", eval: giro_corriendo}
+    - {id: lateral_corriendo, nombre: "Desplazamiento lateral rápido", eval: lateral_corriendo}
+  saltos:
+    - {id: salto_con_carrera, nombre: "Salto con carrera", eval: con_carrera}
+    - {id: saltos_un_pie, nombre: "Saltos en un pie", eval: saltos_un_pie}
+    - {id: cabecear_salto, nombre: "Saltar para cabecear", eval: null}
+  gesto:
+    - {id: gesto_patada, nombre: "Gesto de patada de fútbol (sin balón)", eval: patear_balon_futbol}
+
+etapa_3_balon:
   fisica:
     - {id: F, nombre: "Física del balón validada (rebote, rodamiento, aire, efecto)", eval: null}
   basicas_B0_B5:

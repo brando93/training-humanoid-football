@@ -41,9 +41,12 @@ real), **después** realismo visual y Unreal. Un nivel de habilidad (B0–B9 en 
 dominado con ≥ 90% de éxito en MuJoCo con condiciones aleatorias. Métricas de realismo: deslizamiento de pies, jerk articular,
 caídas, puntuación del discriminador y la nota de realismo (1–5) que Brandon pone en los issues.
 
+**Orden de trabajo (Brandon):** primero que se mueva como un humano, natural, con acciones básicas (etapa 1);
+luego lo atlético para el fútbol (etapa 2); luego el balón (etapa 3). No saltarse etapas.
+
 **Checklist de habilidades:** [docs/checklist_habilidades.md](docs/checklist_habilidades.md) es el estado oficial de
 lo que el humanoide ya sabe hacer. Los checks los calcula `retarget/update_checklist.py` desde una medición
-(`make checklist`); nunca se marcan a mano. Tras cada corrida de entrenamiento, actualizarlo y reportar qué
+(`make checklist`); nunca se marcan a mano. Un check exige "lo hace" **y** "natural". Tras cada corrida de entrenamiento, actualizarlo y reportar qué
 habilidades ganaron o perdieron el check.
 
 ## Al analizar un reporte diario
