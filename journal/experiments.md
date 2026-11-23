@@ -62,3 +62,17 @@ Formato de cada entrada:
 - Freno de costos desplegado y probado: con límite de 1 min terminó la instancia real; límite restaurado a 100 min.
 - Siguiente: Fase 3b (ajuste fino del tracker con los 55 clips desde el checkpoint preentrenado), medir con la
   batería de MuJoCo antes/después. Mejorar arranque (caché de shaders/compilación en la AMI).
+
+## 2026-11-23 — Corrida 3b fallida, entrenamiento seguro y prueba corta en GPU
+- Corrida `2026-11-23-0546` (~$1,10): 47/53 → 0/53 clips. Causas verificadas: tasa del actor de la receta desde
+  cero (5e-4 Muon, KL 0,99 en el primer paso), normalización desplazada hacia nuestros 53 clips, evaluación cada
+  200 épocas y uso del último checkpoint. (Primer diagnóstico, "falta el crítico", era incorrecto: sí viene.)
+- Cambio: `training/train_safe.py` + `training/fase3b_finetune.py` (normalización congelada, calentamiento del
+  crítico, tasa 5e-5, freno, mejor checkpoint), `make preflight` ($0) y prueba corta en GPU.
+- Prueba corta L4 (~$0,30, 8 min): crítico 1.493 → 624 de error, varianza explicada 0,90 → 0,96, recompensa
+  2,5 → 3,46 con el actor congelado (en la fallida bajó a 0,7). Evaluación interna 0,906 → 0,887 con el actor
+  congelado = ruido de ±0,02 (el margen del freno de 0,05 lo cubre). No llegó a descongelar el actor (época 9):
+  el reloj contaba la compilación y cada evaluación de 53 clips tarda minutos → reloj desde la época 1,
+  evaluación cada 20 épocas.
+- Decisión: la corrida completa ya está protegida (freno + mejor checkpoint + salida sin mejora, peor caso ≈ $0,55
+  sin daño); reactivar el ciclo diario tras el merge.

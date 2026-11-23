@@ -64,14 +64,15 @@ class SafeTrain:
             print(f"[train_safe] actor congelado {WARMUP_EPOCHS} épocas (calentamiento del crítico)", flush=True)
 
     def before_play_steps(self, agent):
-        if self.t0 is None:
+        # El reloj empieza en la época 1: la época 0 incluye la compilación inicial (~4 min en la L4).
+        if self.t0 is None and agent.current_epoch >= 1:
             self.t0 = time.time()
         if self.frozen_lrs is not None and agent.current_epoch >= WARMUP_EPOCHS:
             for g, lr in zip(agent.actor_optimizer.param_groups, self.frozen_lrs):
                 g["lr"] = lr
             self.frozen_lrs = None
             print(f"[train_safe] época {agent.current_epoch}: actor descongelado", flush=True)
-        if (time.time() - self.t0) / 60 >= TRAIN_MIN:
+        if self.t0 is not None and (time.time() - self.t0) / 60 >= TRAIN_MIN:
             self._stop(agent, f"tiempo: {TRAIN_MIN:.0f} min de entrenamiento")
 
     def on_eval_end(self, agent):
