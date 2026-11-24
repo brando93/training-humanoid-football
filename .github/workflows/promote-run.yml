@@ -42,7 +42,8 @@ jobs:
             echo "La corrida $last no tiene modelo candidato (p. ej. la medición base): nada que promover." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          aws s3 sync "s3://$BUCKET/checkpoints/3b/candidates/$last/" "s3://$BUCKET/checkpoints/3b/approved/" --delete --only-show-errors
+          aws s3 sync "s3://$BUCKET/checkpoints/3b/candidates/$last/" "s3://$BUCKET/checkpoints/3b/approved/" --delete \
+            --copy-props metadata-directive --only-show-errors  # sin leer etiquetas: el rol no tiene GetObjectTagging
           printf '{"run_id": "%s", "commit": "%s", "date": "%s"}\n' "$last" "${{ github.sha }}" "$(date -u +%FT%TZ)" \
             | aws s3 cp - "s3://$BUCKET/checkpoints/3b/approved.json"
           echo "Modelo aprobado: $last" | tee -a "$GITHUB_STEP_SUMMARY"

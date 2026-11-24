@@ -1,7 +1,7 @@
 # Checklist de habilidades del futbolista
 
-Última medición: **Fase 3b: ajuste fino del tracker con clips CMU** (2026-11-24), archivo `reports/runs/2026-11-24-0250/metrics.json`.
-**Con check: 0 de 37.** Lo hacen (sin medir aún si es natural): 12.
+Última medición: **Fase 3b: ajuste fino del tracker con clips CMU** (2026-11-23), archivo `reports/runs/2026-11-24-0250/metrics.json`.
+**Con check: 12 de 37.** Lo hacen (sin medir aún si es natural): 12.
 
 Orden: primero moverse como un humano de forma natural (etapa 1), luego lo atlético para el fútbol (etapa 2),
 luego el balón (etapa 3). Los checks los calcula `retarget/update_checklist.py`; no se editan a mano.
@@ -18,23 +18,23 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 |---|---|---|---|---|---|---|
 | | **Postura y equilibrio** | | | | | |
 | ⬜ | Estar de pie quieto, relajado | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Equilibrio en un pie | ✅ 100% · 7.9 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Equilibrio en un pie | ✅ 100% · 7.9 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | ⬜ | Agacharse y volver a erguirse | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Caminar** | | | | | |
 | ⬜ | Caminar hacia adelante | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Caminar hacia atrás | ✅ 100% · 6.6 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Pasos laterales | ✅ 100% · 8.7 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Caminar hacia atrás | ✅ 100% · 6.6 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
+| ✅ | Pasos laterales | ✅ 100% · 8.7 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | ⬜ | Girar en el sitio | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | ⬜ | Caminar cambiando de dirección | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Correr** | | | | | |
 | ⬜ | Trotar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Correr | 🟡 33% · 10.8 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 104_37 (0/5), 104_48 (0/5); error ≥ 10 cm |
-| 🟡 | Arrancar desde quieto | ✅ 100% · 6.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Frenar hasta quedar quieto | ✅ 100% · 7.6 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| 🟡 | Correr | 🟡 33% · 10.8 cm | ✅ 4/5 | ⬜ | ⬜ | falla: 104_37 (0/5), 104_48 (0/5); error ≥ 10 cm; nota del 2026-11-24 (corrida 2026-11-24-0250); defectos: final_inestable |
+| ✅ | Arrancar desde quieto | ✅ 100% · 6.0 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
+| ✅ | Frenar hasta quedar quieto | ✅ 100% · 7.6 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | | **Saltar** | | | | | |
-| 🟡 | Saltar con los dos pies | ✅ 100% · 9.8 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Saltar con los dos pies | ✅ 100% · 9.8 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | | **Suelo** | | | | | |
-| 🟡 | Levantarse del suelo | ✅ 100% · 9.8 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Levantarse del suelo | ✅ 100% · 9.8 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | ⬜ | Caer sin dañarse y recuperarse | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 
 ## Etapa 2 — Movimiento atlético para el fútbol (sin balón)
@@ -43,19 +43,19 @@ Una habilidad tiene ✅ solo si cumple **las dos** columnas:
 |---|---|---|---|---|---|---|
 | | **Velocidad** | | | | | |
 | ⬜ | Esprintar | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
-| 🟡 | Pasar de trote a carrera | 🟡 50% · 4.7 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 104_01 (0/5) |
-| 🟡 | Correr, parar y volver a correr | 🟡 50% · 8.5 cm | ⏳ sin nota | ⬜ | ⬜ | falla: 127_17 (0/5) |
+| 🟡 | Pasar de trote a carrera | 🟡 50% · 4.7 cm | ✅ 4/5 | ⬜ | ⬜ | falla: 104_01 (0/5); nota del 2026-11-24 (corrida 2026-11-24-0250); defectos: final_inestable |
+| 🟡 | Correr, parar y volver a correr | 🟡 50% · 8.5 cm | ✅ 4/5 | ⬜ | ⬜ | falla: 127_17 (0/5); nota del 2026-11-24 (corrida 2026-11-24-0250); defectos: final_inestable |
 | | **Agilidad** | | | | | |
-| 🟡 | Corte de 90° trotando | ✅ 100% · 9.1 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Corte de 90° corriendo | 🟡 100% · 10.4 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
-| 🟡 | Giro corriendo | ✅ 100% · 8.2 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
-| 🟡 | Desplazamiento lateral rápido | ✅ 100% · 8.0 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Corte de 90° trotando | ✅ 100% · 9.1 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
+| 🟡 | Corte de 90° corriendo | 🟡 100% · 10.4 cm | ✅ 4/5 | ⬜ | ⬜ | error ≥ 10 cm; nota del 2026-11-24 (corrida 2026-11-24-0250); defectos: final_inestable |
+| ✅ | Giro corriendo | ✅ 100% · 8.2 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
+| ✅ | Desplazamiento lateral rápido | ✅ 100% · 8.0 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | | **Saltos** | | | | | |
-| 🟡 | Salto con carrera | 🟡 100% · 10.0 cm | ⏳ sin nota | ⬜ | ⬜ | error ≥ 10 cm |
-| 🟡 | Saltos en un pie | ✅ 100% · 7.8 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| 🟡 | Salto con carrera | 🟡 100% · 10.0 cm | ✅ 5/5 | ⬜ | ⬜ | error ≥ 10 cm; nota del 2026-11-24 (corrida 2026-11-24-0250) |
+| ✅ | Saltos en un pie | ✅ 100% · 7.8 cm | ✅ 5/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250) |
 | ⬜ | Saltar para cabecear | ⬜ sin prueba | ⬜ | ⬜ | ⬜ | Faltan clips |
 | | **Gesto técnico** | | | | | |
-| 🟡 | Gesto de patada de fútbol (sin balón) | ✅ 100% · 6.7 cm | ⏳ sin nota | ⬜ | ⬜ | lo hace; falta tu nota de naturalidad |
+| ✅ | Gesto de patada de fútbol (sin balón) | ✅ 100% · 6.7 cm | ✅ 4/5 | ⬜ | ⬜ | check desde 2026-11-23; nota del 2026-11-24 (corrida 2026-11-24-0250); defectos: final_inestable |
 
 ## Etapa 3 — El balón
 

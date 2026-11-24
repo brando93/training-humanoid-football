@@ -1,0 +1,124 @@
+{
+ "run_id": "2026-11-24-0250",
+ "pr": 8,
+ "reviewer": "brando93",
+ "date": "2026-11-24",
+ "url": "https://github.com/brando93/training-humanoid-football/pull/8#pullrequestreview-6034060817",
+ "naturalidad": {
+  "un_pie": 5,
+  "caminar_atras": 5,
+  "caminar_lateral": 5,
+  "correr": 4,
+  "arrancar": 5,
+  "frenar": 5,
+  "saltar_dos_pies": 5,
+  "levantarse": 5,
+  "trote_a_carrera": 4,
+  "correr_parar_correr": 4,
+  "corte_90_trote": 5,
+  "corte_90_carrera": 4,
+  "giro_corriendo": 5,
+  "lateral_corriendo": 5,
+  "salto_con_carrera": 5,
+  "saltos_un_pie": 5,
+  "gesto_patada": 4
+ },
+ "detalle": {
+  "un_pie": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "caminar_atras": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "caminar_lateral": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "correr": {
+   "nota": 4,
+   "vs_anterior": "igual",
+   "defectos": [
+    "final_inestable"
+   ]
+  },
+  "arrancar": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "frenar": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "saltar_dos_pies": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "levantarse": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "trote_a_carrera": {
+   "nota": 4,
+   "vs_anterior": "igual",
+   "defectos": [
+    "final_inestable"
+   ]
+  },
+  "correr_parar_correr": {
+   "nota": 4,
+   "vs_anterior": "igual",
+   "defectos": [
+    "final_inestable"
+   ]
+  },
+  "corte_90_trote": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "corte_90_carrera": {
+   "nota": 4,
+   "vs_anterior": "igual",
+   "defectos": [
+    "final_inestable"
+   ]
+  },
+  "giro_corriendo": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "lateral_corriendo": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "salto_con_carrera": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "saltos_un_pie": {
+   "nota": 5,
+   "vs_anterior": "igual",
+   "defectos": []
+  },
+  "gesto_patada": {
+   "nota": 4,
+   "vs_anterior": "igual",
+   "defectos": [
+    "final_inestable"
+   ]
+  }
+ },
+ "comentarios": "Overall, the humanoid movements look natural and realistic. Most actions are well executed, with good balance and smooth transitions. However, some movements still have stability issues at the end. In particular, running, transitioning from jogging to running, stopping and restarting, running 90-degree cuts, and the football kicking gesture need improvement. The humanoid sometimes loses balance or falls at the end of these movements. It should maintain a stable posture and recover its balance naturally after completing each action."
+}

@@ -1,0 +1,148 @@
+{
+ "arrancar": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "caminar_atras": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "caminar_lateral": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "correr": {
+  "nota": 4,
+  "vs_anterior": "igual",
+  "defectos": [
+   "final_inestable"
+  ],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "correr_parar_correr": {
+  "nota": 4,
+  "vs_anterior": "igual",
+  "defectos": [
+   "final_inestable"
+  ],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "corte_90_carrera": {
+  "nota": 4,
+  "vs_anterior": "igual",
+  "defectos": [
+   "final_inestable"
+  ],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "corte_90_trote": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "frenar": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "gesto_patada": {
+  "nota": 4,
+  "vs_anterior": "igual",
+  "defectos": [
+   "final_inestable"
+  ],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "giro_corriendo": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "lateral_corriendo": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "levantarse": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "saltar_dos_pies": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "salto_con_carrera": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "saltos_un_pie": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "trote_a_carrera": {
+  "nota": 4,
+  "vs_anterior": "igual",
+  "defectos": [
+   "final_inestable"
+  ],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ },
+ "un_pie": {
+  "nota": 5,
+  "vs_anterior": "igual",
+  "defectos": [],
+  "run_id": "2026-11-24-0250",
+  "date": "2026-11-24",
+  "pr": 8
+ }
+}
