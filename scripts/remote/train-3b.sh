@@ -2,12 +2,13 @@
 # Corrida de la Fase 3b en la instancia GPU (la lanza user data; ver scripts/remote/userdata-train.sh).
 #  1. Parte del último modelo APROBADO (s3://.../checkpoints/3b/approved/, el que Brandon aceptó con merge);
 #     si no hay, arranca del tracker de NVIDIA (warm start).
-#  2. Entrena TRAIN_MIN minutos con los 53 clips de CMU (last.ckpt se guarda cada ~2 min).
-#  3. Mide en MuJoCo (5 corridas por clip), graba un clip por habilidad y arma el reporte.
-#  4. Sube candidato, reporte y videos a S3. Un workflow de GitHub abre el PR para la review.
+#  2. Entrena TRAIN_MIN minutos con los clips de entrenamiento (data/cmu_soma_train.pt: sin los clips rotos).
+#  3. Si mejoró, sube el candidato y marca TRAINED. Se apaga: la GPU solo entrena.
+#  4. La medición en MuJoCo y los clips son CPU: los hace GitHub Actions (measure-run.yml, $0), que deja DONE;
+#     luego run-pr.yml abre el PR para la review.
 # La instancia nunca toca GitHub. El apagado forzado (90 min) y el freno de costos siguen activos.
 set -uo pipefail
-TRAIN_MIN="${TRAIN_MIN:-35}"  # arranque ~13 + entrenar 35 + medir ~25 + videos ~3 < 90 min del apagado forzado
+TRAIN_MIN="${TRAIN_MIN:-35}"  # arranque ~13 + entrenar 35 + subir ~2 = ~50 min, lejos del apagado forzado (90)
 BUCKET=humanoid-artifacts-611606529792
 RUN_ID="${RUN_ID:-$(date -u +%Y-%m-%d-%H%M)}"
 ROOT=/opt/humanoid
@@ -26,7 +27,8 @@ source "$ROOT/env.sh"
 
 echo "== código y datos"
 mkdir -p "$REPO" && s3 cp "s3://$BUCKET/${CODE_KEY:-code/latest.tar.gz}" /tmp/code.tar.gz && tar -xzf /tmp/code.tar.gz -C "$REPO"
-s3 cp "s3://$BUCKET/data/cmu_soma_all.pt" "$ROOT/cmu_soma_all.pt"
+TRAIN_SET="${TRAIN_SET:-cmu_soma_train.pt}"  # retarget/pack_training_set.py
+s3 cp "s3://$BUCKET/data/$TRAIN_SET" "$ROOT/train_set.pt"
 s3 sync "s3://$BUCKET/data/cmu_motions/" "$REPO/data/cmu_motions/"
 
 cd "$PROTOMOTIONS_ROOT" || exit 1
@@ -37,14 +39,10 @@ if aws s3 ls "s3://$BUCKET/checkpoints/3b/approved/last.ckpt" >/dev/null 2>&1; t
   s3 sync "s3://$BUCKET/checkpoints/3b/approved/" "$SAVE/"
   PREV="aprobado"
   WARM=()
-  # Copia del aprobado (con su bundle de configs) para grabarlo al lado del nuevo.
-  rm -rf "$ROOT/prev_model" && cp -r "$SAVE" "$ROOT/prev_model"
-  PREV_CKPT="$ROOT/prev_model/last.ckpt"
 else
   echo "== warm start desde el tracker de NVIDIA"
   PREV="nvidia"
   WARM=(--checkpoint data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt)
-  PREV_CKPT="$PROTOMOTIONS_ROOT/data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt"
 fi
 
 echo "== entrena $TRAIN_MIN min (contados desde la primera época) con training/train_safe.py"
@@ -53,7 +51,7 @@ echo "== entrena $TRAIN_MIN min (contados desde la primera época) con training/
 t0=$(date +%s)
 TRAIN_MIN="$TRAIN_MIN" timeout --signal=INT --kill-after=60 "$((TRAIN_MIN + 15))m" python "$REPO/training/train_safe.py" \
   --robot-name anatomic_soma --simulator isaaclab --experiment-path "$REPO/training/fase3b_finetune.py" \
-  --motion-file "$ROOT/cmu_soma_all.pt" --num-envs 2048 --batch-size 2048 \
+  --motion-file "$ROOT/train_set.pt" --num-envs 2048 --batch-size 2048 \
   --experiment-name fase3b --headless "${WARM[@]}"
 echo "== entrenamiento terminó (código $?) en $(( ($(date +%s) - t0) / 60 )) min"
 cat "$SAVE/safe_train.json" 2>/dev/null
@@ -86,27 +84,9 @@ if [[ "$improved" != "1" ]]; then
 fi
 s3 sync "$SAVE/" "s3://$BUCKET/checkpoints/3b/candidates/$RUN_ID/" --exclude "*epoch_*" --exclude "score_based.ckpt" --exclude "inference_score_based.ckpt"
 
-echo "== mide en MuJoCo y graba clips"
-export PY_BIN="$ROOT/venv/bin/python" PM_ROOT="$PROTOMOTIONS_ROOT" MUJOCO_GL=egl
-export CHECKPOINT="$PROTOMOTIONS_ROOT/$SAVE/last.ckpt"
-cd "$REPO" || exit 1
-WORKERS=7 REPEATS=5 "$PY_BIN" retarget/eval_repeat.py "repeat_$RUN_ID"
-# Para comparar: medición del modelo aprobado anterior (o la base del tracker de NVIDIA).
-prev_run=$(aws s3 cp "s3://$BUCKET/checkpoints/3b/approved.json" - 2>/dev/null | "$PY_BIN" -c "import json,sys;print(json.load(sys.stdin)['run_id'])" 2>/dev/null || echo 2026-11-22-base)
-PREV_ARGS=()
-s3 cp "s3://$BUCKET/reports/runs/$prev_run/report/eval.json" /tmp/prev_eval.json && PREV_ARGS=(--prev-eval /tmp/prev_eval.json)
-MEDIA="$ROOT/media"; rm -rf "$MEDIA"
-steps=$("$PY_BIN" -c "import torch;print(torch.load('$CHECKPOINT',map_location='cpu',weights_only=False)['step_count'])" 2>/dev/null || echo "?")
-WORKERS=7 "$PY_BIN" retarget/make_run_report.py --eval "data/cmu_motions/repeat_$RUN_ID.json" --run-id "$RUN_ID" \
-  --label "Fase 3b: ajuste fino del tracker con clips CMU" --media-dir "$MEDIA" \
-  --cost "${COST:-≈ \$1,10 (g6.2xlarge spot, ~90 min)}" \
-  --notes "Parte de: $PREV (comparado con la corrida $prev_run). Entrenó $TRAIN_MIN min (pasos acumulados: $steps)." \
-  --prev-checkpoint "$PREV_CKPT" --train-status "$PROTOMOTIONS_ROOT/$SAVE/safe_train.json" \
-  "${PREV_ARGS[@]}"
-cp "data/cmu_motions/repeat_$RUN_ID.json" "reports/runs/$RUN_ID/eval.json"
-
-echo "== sube reporte y videos"
-s3 sync "reports/runs/$RUN_ID/" "s3://$BUCKET/reports/runs/$RUN_ID/report/"
-s3 sync "$MEDIA/runs/$RUN_ID/" "s3://$BUCKET/reports/runs/$RUN_ID/media/"
-date -u +%FT%TZ | aws s3 cp - "s3://$BUCKET/reports/runs/$RUN_ID/DONE" --only-show-errors
-echo "== listo $(date -u). Se apaga."
+# Para la medición: con qué modelo comparar (el aprobado del que partió) y cuánto entrenó.
+steps=$(python -c "import torch;print(torch.load('$SAVE/last.ckpt',map_location='cpu',weights_only=False)['step_count'])" 2>/dev/null || echo "?")
+printf '{"run_id": "%s", "prev": "%s", "train_min": %s, "steps": "%s", "train_set": "%s", "date": "%s"}\n' \
+  "$RUN_ID" "$PREV" "$TRAIN_MIN" "$steps" "$TRAIN_SET" "$(date -u +%FT%TZ)" > "$ROOT/trained.json"
+s3 cp "$ROOT/trained.json" "s3://$BUCKET/reports/runs/$RUN_ID/TRAINED"
+echo "== listo en $(( ($(date +%s) - t0) / 60 )) min desde el inicio del entrenamiento. Se apaga; GitHub Actions mide y graba."

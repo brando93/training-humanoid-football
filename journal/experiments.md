@@ -76,3 +76,16 @@ Formato de cada entrada:
   evaluación cada 20 épocas.
 - Decisión: la corrida completa ya está protegida (freno + mejor checkpoint + salida sin mejora, peor caso ≈ $0,55
   sin daño); reactivar el ciclo diario tras el merge.
+
+## 2026-11-24 — Corrida 2026-11-24-0250 y plan de costo/calidad
+- **Resultado:** 47 → 49/53 clips al 100% (ganó 124_11 dos pies y 140_03 levantarse), sin pérdidas, jerk 14,9 → 13,6%.
+  Evaluación interna 0,906 → 0,925 (época 60). Aprobada con merge (PR 8); review de Brandon: checklist 12/37.
+- **Falla de pipeline:** la medición y los clips (CPU) no terminaron antes del apagado forzado de 90 min. Rescatados en la
+  Mac en 11 min con `scripts/rescue-run.sh` (ahora `scripts/measure-run.sh`).
+- **Dónde se fue el tiempo de GPU (87 min, $1,29):** arranque 13 · entrenamiento puro 19 · evaluaciones internas 17
+  (5 × ~200 s) · medición/clips en GPU 36+. Solo 22% fue aprendizaje.
+- **`final_inestable` era un artefacto del video:** los clips de carrera duran 1,5–3,7 s y se grababan 8 s; al terminar
+  el clip ProtoMotions reinicia el episodio. Ahora el video dura una pasada del clip.
+- **Cambios:** la GPU solo entrena (TRAINED) y GitHub Actions mide y graba ($0, `measure-run.yml`); evaluación interna cada
+  40 épocas; entrenamiento con `data/cmu_soma_train.pt` (49 clips, sin 104_01/104_37/104_48/127_17, que fallan por datos).
+  Estimado: ~$0,65 por corrida (~50 min de GPU) en vez de $1,29.
