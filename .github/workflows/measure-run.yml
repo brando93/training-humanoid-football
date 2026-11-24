@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
   push:
     branches: ["claude/costo-*"]
-    paths: [".github/workflows/measure-run.yml", "scripts/measure-run.sh", "scripts/ci/setup-mujoco-env.sh"]
+    paths: [".github/workflows/measure-run.yml", "scripts/measure-run.sh", "scripts/ci/setup-mujoco-env.sh", "retarget/record_clip.py"]
 
 permissions:
   id-token: write
@@ -67,6 +67,11 @@ jobs:
             --checkpoint data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt \
             --motion-file data/motion_for_trackers/anatomic_soma_bones_seed_mini.pt --num-envs 1 --headless --full-eval 2>&1 \
             | tee /tmp/smoke.log | grep -E "eval/success_rate|Overall Score" || { tail -30 /tmp/smoke.log; exit 1; }
+          cd "$GITHUB_WORKSPACE"
+          time CHECKPOINT=data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt \
+            "$PY_BIN" retarget/record_clip.py tests/fixtures/cmu_127_09.motion /tmp/smoke.mp4 "humo" 8
+          d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/smoke.mp4); echo "video: $d s (clip 1,7 s)"
+          awk -v d="$d" 'BEGIN { exit !(d > 1.0 && d < 2.5) }'
 
       - name: Medir, grabar y subir
         id: measure
