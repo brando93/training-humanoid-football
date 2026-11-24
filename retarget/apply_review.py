@@ -39,8 +39,15 @@ def find_review(pr: int, reviewer: str) -> tuple[dict, str, str] | None:
         if c["user"]["login"] == reviewer:
             texts.append((c["created_at"], c["body"], c["html_url"]))
     for when, body, url in sorted(texts, reverse=True):
-        for m in BLOCK.finditer(body):
-            data = yaml.safe_load(m.group(1)) or {}
+        # Con o sin ```yaml: primero los bloques cercados; si no hay, el cuerpo entero (desde `naturalidad:`).
+        chunks = [m.group(1) for m in BLOCK.finditer(body)]
+        if not chunks and "naturalidad:" in body:
+            chunks = [body[body.index("naturalidad:"):]]
+        for chunk in chunks:
+            try:
+                data = yaml.safe_load(chunk) or {}
+            except yaml.YAMLError:
+                continue
             if isinstance(data, dict) and "naturalidad" in data:
                 return data, when, url
     return None
