@@ -1,0 +1,12 @@
+# Qué clips de configs/skills_cmu.yaml entran al ENTRENAMIENTO en GPU (retarget/pack_training_set.py).
+# La medición sigue usando todos: un clip excluido aparece como falla conocida hasta que se arregle.
+#
+# Excluidos porque fallan 0/5 en todas las corridas por errores de datos, no del modelo (ver
+# docs/reports/battery_3a.md): carrera corta que empieza o termina a media zancada, saltos del retarget.
+# ProtoMotions da más peso a los clips que fallan, así que en el entrenamiento gastaban GPU en imitar
+# movimientos imposibles. Cuando se arregle o reemplace un clip, se quita de esta lista.
+excluir:
+  104_01: trote_a_carrera, retarget con saltos (corregido a 55 cuadros, sigue fallando)
+  104_37: correr_recto, carrera corta, empieza a media zancada
+  104_48: correr_recto, carrera corta, empieza a media zancada
+  127_17: correr_parar_correr, falla en todas las corridas

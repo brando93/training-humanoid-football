@@ -105,7 +105,7 @@ resource "aws_iam_role_policy" "gha_launcher" {
 # ---------------------------------------------------------------------------
 resource "aws_iam_role" "gha_runs" {
   name                 = "humanoid-gha-runs"
-  description          = "GitHub Actions: lee reportes de corridas y promueve el modelo aprobado"
+  description          = "GitHub Actions: mide corridas (CPU), lee reportes y promueve el modelo aprobado"
   assume_role_policy   = data.aws_iam_policy_document.gha_main_trust.json
   max_session_duration = 3600
 }
@@ -118,7 +118,7 @@ data "aws_iam_policy_document" "gha_runs" {
     condition {
       test     = "StringLike"
       variable = "s3:prefix"
-      values   = ["reports/runs/*", "checkpoints/3b/*", "guard/*"]
+      values   = ["reports/runs/*", "checkpoints/3b/*", "guard/*", "data/cmu_motions/*"]
     }
   }
 
@@ -126,6 +126,19 @@ data "aws_iam_policy_document" "gha_runs" {
     sid       = "ReadRunsAndCandidates"
     actions   = ["s3:GetObject"]
     resources = ["${local.artifacts_arn}/reports/runs/*", "${local.artifacts_arn}/checkpoints/3b/candidates/*", "${local.artifacts_arn}/guard/*"]
+  }
+
+  # measure-run.yml: mide en MuJoCo fuera de la GPU. Lee clips y modelo aprobado; escribe solo reportes de corridas.
+  statement {
+    sid       = "MeasureRead"
+    actions   = ["s3:GetObject"]
+    resources = ["${local.artifacts_arn}/data/cmu_motions/*", "${local.artifacts_arn}/checkpoints/3b/approved/*", "${local.artifacts_arn}/checkpoints/3b/approved.json"]
+  }
+
+  statement {
+    sid       = "MeasureWriteReports"
+    actions   = ["s3:PutObject"]
+    resources = ["${local.artifacts_arn}/reports/runs/*"]
   }
 
   statement {

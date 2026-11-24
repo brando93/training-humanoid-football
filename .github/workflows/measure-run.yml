@@ -1,0 +1,85 @@
+# La GPU solo entrena (scripts/remote/train-3b.sh deja reports/runs/<id>/TRAINED y se apaga). Este workflow hace la
+# parte de CPU gratis: mide ×5 por clip en MuJoCo, graba los clips lado a lado, sube el reporte (DONE) y dispara
+# run-pr.yml para abrir el PR. Respaldo manual en la Mac: scripts/measure-run.sh.
+# En ramas claude/* corre solo la prueba de humo del entorno (sin AWS: el rol OIDC solo confía en main).
+name: measure-run
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+  push:
+    branches: ["claude/costo-*"]
+    paths: [".github/workflows/measure-run.yml", "scripts/measure-run.sh", "scripts/ci/setup-mujoco-env.sh", "retarget/record_clip.py"]
+
+permissions:
+  id-token: write
+  contents: read
+  actions: write # para disparar run-pr.yml al terminar
+
+concurrency:
+  group: measure-run
+  cancel-in-progress: false
+
+env:
+  BUCKET: humanoid-artifacts-611606529792
+  MUJOCO_GL: egl
+  PYOPENGL_PLATFORM: egl
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SMOKE: ${{ github.ref != 'refs/heads/main' && '1' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: env.SMOKE != '1'
+        with:
+          role-to-assume: arn:aws:iam::611606529792:role/humanoid-gha-runs
+          aws-region: us-east-1
+
+      - name: ¿Hay una corrida entrenada sin medir?
+        id: pending
+        run: |
+          if [ "$SMOKE" = "1" ]; then echo "go=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          for id in $(aws s3 ls "s3://$BUCKET/reports/runs/" | awk '/PRE/ {print $2}' | tr -d / | sort -r); do
+            aws s3 ls "s3://$BUCKET/reports/runs/$id/TRAINED" >/dev/null 2>&1 || continue
+            aws s3 ls "s3://$BUCKET/reports/runs/$id/DONE" >/dev/null 2>&1 && continue
+            echo "Por medir: $id"; echo "go=1" >> "$GITHUB_OUTPUT"; exit 0
+          done
+          echo "Nada que medir."
+
+      - name: Entorno MuJoCo (CPU)
+        if: steps.pending.outputs.go == '1'
+        run: scripts/ci/setup-mujoco-env.sh
+
+      - name: Prueba de humo (rama)
+        if: steps.pending.outputs.go == '1' && env.SMOKE == '1'
+        run: |
+          export PY_BIN="$PWD/.venv-ci/bin/python" PM_ROOT="$PWD/third_party/ProtoMotions"
+          "$PY_BIN" -c "import mujoco; r = mujoco.Renderer(mujoco.MjModel.from_xml_string('<mujoco><worldbody><geom size=\".1\"/></worldbody></mujoco>'), 64, 64); print('render EGL ok')"
+          cd third_party/ProtoMotions
+          time timeout 900 "$PY_BIN" protomotions/inference_agent.py --simulator mujoco \
+            --checkpoint data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt \
+            --motion-file data/motion_for_trackers/anatomic_soma_bones_seed_mini.pt --num-envs 1 --headless --full-eval 2>&1 \
+            | tee /tmp/smoke.log | grep -E "eval/success_rate|Overall Score" || { tail -30 /tmp/smoke.log; exit 1; }
+          cd "$GITHUB_WORKSPACE"
+          time CHECKPOINT=data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt \
+            "$PY_BIN" retarget/record_clip.py tests/fixtures/cmu_127_09.motion /tmp/smoke.mp4 "humo" 8
+          d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/smoke.mp4); echo "video: $d s (clip 1,7 s)"
+          awk -v d="$d" 'BEGIN { exit !(d > 1.0 && d < 2.5) }'
+
+      - name: Medir, grabar y subir
+        id: measure
+        if: steps.pending.outputs.go == '1' && env.SMOKE != '1'
+        run: |
+          export PY_BIN="$PWD/.venv-ci/bin/python" PM_ROOT="$PWD/third_party/ProtoMotions" WORKERS=$(nproc)
+          scripts/measure-run.sh
+
+      - name: Abrir el PR
+        if: steps.measure.outputs.run_id != ''
+        run: gh workflow run run-pr.yml --ref main

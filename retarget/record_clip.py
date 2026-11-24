@@ -27,6 +27,14 @@ def main() -> None:
     motion, out = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
     label = sys.argv[3] if len(sys.argv) > 3 else motion.stem
     max_s = float(sys.argv[4]) if len(sys.argv) > 4 else 12.0
+    # Una sola pasada del clip: al terminar, ProtoMotions reinicia el episodio (el humanoide salta al inicio)
+    # y eso se veía como un "final inestable". Se graba como máximo el largo del clip.
+    if motion.is_file():
+        import torch
+        m = torch.load(motion, map_location="cpu", weights_only=False)
+        d = m if isinstance(m, dict) else vars(m)
+        n = next(v.shape[0] for v in d.values() if hasattr(v, "shape") and getattr(v, "ndim", 0) > 1)
+        max_s = min(max_s, max(n - 2, 1) / float(d.get("fps", 30)))
     lib = out.with_suffix(".pt")
     subprocess.run([str(PY), "protomotions/components/motion_lib.py", "--motion-path", str(motion.parent if motion.is_dir() else motion),
                     "--output-file", str(lib)], cwd=PM, check=True, capture_output=True)
