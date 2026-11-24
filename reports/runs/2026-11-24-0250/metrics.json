@@ -1,0 +1,124 @@
+{
+ "run_id": "2026-11-24-0250",
+ "label": "Fase 3b: ajuste fino del tracker con clips CMU",
+ "cost": "≈ $1,29 (g6.2xlarge spot, 87 min; medición y clips rescatados en la Mac)",
+ "eval_file": "repeat_2026-11-24-0250.json",
+ "verdict": "para revisar",
+ "lost": [],
+ "gained": [
+  "dos_pies",
+  "levantarse",
+  "un_pie"
+ ],
+ "skills": {
+  "arrancar": {
+   "rate": 1.0,
+   "err_cm": 6.0,
+   "lo_hace": true,
+   "fail": []
+  },
+  "con_carrera": {
+   "rate": 1.0,
+   "err_cm": 10.0,
+   "lo_hace": false,
+   "fail": []
+  },
+  "correr_parar_correr": {
+   "rate": 0.5,
+   "err_cm": 8.46,
+   "lo_hace": false,
+   "fail": [
+    "127_17 (0/5)"
+   ]
+  },
+  "correr_recto": {
+   "rate": 0.333,
+   "err_cm": 10.8,
+   "lo_hace": false,
+   "fail": [
+    "104_37 (0/5)",
+    "104_48 (0/5)"
+   ]
+  },
+  "corte_90_carrera": {
+   "rate": 1.0,
+   "err_cm": 10.45,
+   "lo_hace": false,
+   "fail": []
+  },
+  "corte_90_trote": {
+   "rate": 1.0,
+   "err_cm": 9.06,
+   "lo_hace": true,
+   "fail": []
+  },
+  "dos_pies": {
+   "rate": 1.0,
+   "err_cm": 9.75,
+   "lo_hace": true,
+   "fail": []
+  },
+  "frenar_en_seco": {
+   "rate": 1.0,
+   "err_cm": 7.61,
+   "lo_hace": true,
+   "fail": []
+  },
+  "giro_corriendo": {
+   "rate": 1.0,
+   "err_cm": 8.21,
+   "lo_hace": true,
+   "fail": []
+  },
+  "hacia_atras": {
+   "rate": 1.0,
+   "err_cm": 6.56,
+   "lo_hace": true,
+   "fail": []
+  },
+  "lateral_corriendo": {
+   "rate": 1.0,
+   "err_cm": 7.95,
+   "lo_hace": true,
+   "fail": []
+  },
+  "lateral_defensivo": {
+   "rate": 1.0,
+   "err_cm": 8.73,
+   "lo_hace": true,
+   "fail": []
+  },
+  "levantarse": {
+   "rate": 1.0,
+   "err_cm": 9.82,
+   "lo_hace": true,
+   "fail": []
+  },
+  "patear_balon_futbol": {
+   "rate": 1.0,
+   "err_cm": 6.67,
+   "lo_hace": true,
+   "fail": []
+  },
+  "saltos_un_pie": {
+   "rate": 1.0,
+   "err_cm": 7.81,
+   "lo_hace": true,
+   "fail": []
+  },
+  "trote_a_carrera": {
+   "rate": 0.5,
+   "err_cm": 4.7,
+   "lo_hace": false,
+   "fail": [
+    "104_01 (0/5)"
+   ]
+  },
+  "un_pie": {
+   "rate": 1.0,
+   "err_cm": 7.88,
+   "lo_hace": true,
+   "fail": []
+  }
+ }
+}
