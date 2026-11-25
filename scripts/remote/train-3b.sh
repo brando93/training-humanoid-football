@@ -53,7 +53,7 @@ echo "== entrena $TRAIN_MIN min (contados desde la primera época) con training/
 # Seguro: normalización congelada, crítico calentado con el actor congelado, tasa baja (training/fase3b_finetune.py),
 # evaluación cada FT_EVAL_EVERY épocas, freno si empeora y límite de tiempo. timeout es solo el respaldo duro.
 t0=$(date +%s)
-TRAIN_MIN="$TRAIN_MIN" timeout --signal=INT --kill-after=60 "$((TRAIN_MIN + 15))m" python "$REPO/training/train_safe.py" \
+TRAIN_MIN="$TRAIN_MIN" timeout --signal=INT --kill-after=60 "$((TRAIN_MIN + 25))m" python "$REPO/training/train_safe.py" \
   --robot-name anatomic_soma --simulator isaaclab --experiment-path "$REPO/training/fase3b_finetune.py" \
   --motion-file "$ROOT/train_set.pt" --num-envs 2048 --batch-size 2048 \
   --experiment-name fase3b --headless "${WARM[@]}"
@@ -79,7 +79,8 @@ fi
 # El candidato es el MEJOR modelo de la corrida, no el último.
 cp "$SAVE/score_based.ckpt" "$SAVE/last.ckpt"
 cp "$SAVE/inference_score_based.ckpt" "$SAVE/inference_last.ckpt" 2>/dev/null || true
-improved=$(python -c "import json;s=json.load(open('$SAVE/safe_train.json'));print(int(s['best_score'] is not None and s['start_score'] is not None and s['best_score'] > s['start_score'] + 1e-6))")
+# MIN_GAIN 0,002 = 2 mm menos de error medio o medio clip más: por debajo es ruido. La puerta de verdad es measure-run.
+improved=$(python -c "import json;s=json.load(open('$SAVE/safe_train.json'));print(int(s['best_score'] is not None and s['start_score'] is not None and s['best_score'] > s['start_score'] + ${MIN_GAIN:-0.002}))")
 s3 cp "$SAVE/safe_train.json" "s3://$BUCKET/reports/runs/$RUN_ID/safe_train.json"
 if [[ "$improved" != "1" ]]; then
   echo "== SIN MEJORA en la evaluación interna: no se mide, no se graba, no hay PR. Se apaga para ahorrar."
