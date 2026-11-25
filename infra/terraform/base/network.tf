@@ -5,7 +5,8 @@
 
 locals {
   # Varias zonas = más pools de capacidad spot donde buscar GPU.
-  azs = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+  # us-east-1f (2026-11-25): la g6.2xlarge spot suele ser la más barata ahí (~$0,70 vs ~$0,82). us-east-1e no ofrece g6.
+  azs = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1f"]
 }
 
 resource "aws_vpc" "main" {
