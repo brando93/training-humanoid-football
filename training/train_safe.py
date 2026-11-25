@@ -9,6 +9,11 @@
    PATIENCE evaluaciones seguidas, se detiene (y last.ckpt queda, pero el candidato es el MEJOR: score_based).
 3. Límite de tiempo contado desde la primera época (no desde el arranque de Isaac Sim): TRAIN_MIN.
 4. Estado en <save_dir>/safe_train.json: puntaje inicial, cada evaluación, mejor puntaje y motivo de parada.
+5. Puntaje fino: el de ProtoMotions es solo la tasa de éxito, y un clip falla recién si el cuerpo se aleja > 50 cm.
+   Con eso no se ve si el seguimiento mejora (el checklist pide < 10 cm), y un clip entero tiene que pasar de
+   fallar a lograrse para que cuente (corrida 2026-11-25-1812: 196/208 -> 195/208, "sin mejora").
+   Aquí puntaje = éxito - ERR_WEIGHT * error medio de posición (m). Con ERR_WEIGHT=1 y 208 clips, bajar el error
+   medio 5 mm vale lo mismo que lograr un clip más. Este puntaje también elige score_based.ckpt (el candidato).
 
 Uso (desde third_party/ProtoMotions o $PROTOMOTIONS_ROOT), mismos argumentos que train_agent.py:
   TRAIN_MIN=35 WARMUP_EPOCHS=20 python <repo>/training/train_safe.py --robot-name anatomic_soma ...
@@ -26,6 +31,7 @@ WARMUP_EPOCHS = int(os.environ.get("WARMUP_EPOCHS", "20"))
 FREEZE_NORM = os.environ.get("FREEZE_NORM", "1") == "1"
 MARGIN = float(os.environ.get("ABORT_MARGIN", "0.05"))
 PATIENCE = int(os.environ.get("ABORT_PATIENCE", "2"))
+ERR_WEIGHT = float(os.environ.get("ERR_WEIGHT", "1.0"))
 
 
 class SafeTrain:
@@ -81,13 +87,16 @@ class SafeTrain:
             return
         score = float(score)
         ep = int(agent.current_epoch)
-        self.state["evals"].append({"epoch": ep, "score": round(score, 4)})
+        self.state["err_weight"] = ERR_WEIGHT
+        self.state["evals"].append({"epoch": ep, "score": round(score, 5),
+                                    **getattr(agent.evaluator, "_last_detail", {})})
         if self.state["start_score"] is None:
             self.state["start_score"] = score
         if self.state["best_score"] is None or score >= self.state["best_score"]:
             self.state["best_score"] = score
-        print(f"[train_safe] eval época {ep}: {score:.3f} (inicio {self.state['start_score']:.3f}, "
-              f"mejor {self.state['best_score']:.3f})", flush=True)
+        d = getattr(agent.evaluator, "_last_detail", {})
+        print(f"[train_safe] eval época {ep}: {score:.4f} = éxito {d.get('success')} - error {d.get('gt_error_cm')} cm "
+              f"(inicio {self.state['start_score']:.4f}, mejor {self.state['best_score']:.4f})", flush=True)
         if ep >= WARMUP_EPOCHS and score < self.state["start_score"] - MARGIN:
             self.bad += 1
             if self.bad >= PATIENCE:
@@ -126,6 +135,15 @@ def main() -> None:
 
     def evaluate(self):
         result = orig_eval(self)
+        logs = getattr(result, "logs", None) or {}
+        succ, err = logs.get("eval/success_rate"), logs.get("eval/gt_error/mean")
+        if result.score is not None and succ is not None and err is not None:
+            result.score = float(succ) - ERR_WEIGHT * float(err)  # ProtoMotions elige score_based.ckpt con esto
+            detail = {"success": round(float(succ), 4), "gt_error_cm": round(100 * float(err), 2)}
+            if getattr(result, "failed", None) is not None and getattr(result, "evaluated", None) is not None:
+                bad = (result.failed & result.evaluated).nonzero().flatten().tolist()
+                detail["failed_idx"] = bad  # índice en el .pt de entrenamiento (orden de motion_lib)
+            self._last_detail = detail
         self._last_score = getattr(result, "score", None)
         return result
 

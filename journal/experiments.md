@@ -109,3 +109,10 @@ Formato de cada entrada:
 - **Determinismo:** con el modelo ajustado, las 5 repeticiones dan siempre el mismo resultado (0 clips mixtos de 96; el error varía ≤ 4 cm). El tracker base tenía 2 clips mixtos de 54.
 - **Problema de capacidad:** medir 88 clips ×5 cuesta ~440 evaluaciones (~29 s de CPU cada una). En un runner de 2 núcleos son ~1,5–2 h por corrida, más de lo que dan los 2.000 min/mes gratis de un repo privado. Los cron bajaron de 24 a 5 despertares al día.
 - **Decisión (Brandon):** el repo pasa a público. Actions no tiene límite de minutos en repos públicos y usa runners de 4 núcleos, así que la medición estimada es de ~1 h por corrida, gratis y sin tocar AWS. Al hacerlo público se activaron el escaneo de secretos, la protección en push y la aprobación obligatoria de workflows de forks.
+
+## 2026-11-25 — Corrida 2026-11-25-1812: sin mejora, y por qué no se podía ver
+- **Anoche (2026-11-25-0037):** falló a los 9 min ($0,27). Al reanudar dentro de `results/fase3b`, ProtoMotions usó la config congelada y buscó un set de clips viejo. Arreglado en el PR 13 (warm start desde el aprobado); prueba corta en GPU OK ($0,33).
+- **Corrida completa con el set v2 (208 clips, ~$0,85):** puntaje interno 0,942 → 0,938 (196 → 195 de 208). El guardia la rechazó: no hubo candidato ni PR.
+- **Por qué no se veía mejora:** el puntaje interno era solo la tasa de éxito, y un clip falla recién si el cuerpo se aleja > 50 cm. No mide la calidad del seguimiento (el checklist pide < 10 cm), y un clip entero tiene que pasar de fallar a lograrse para que cuente.
+- **Cambio:** puntaje = éxito − error medio de posición (m). Bajar 5 mm el error medio vale un clip. Se guarda el detalle de cada evaluación (éxito, error en cm, índices de los clips que fallan). Umbral de mejora: 0,002. La puerta real sigue siendo measure-run en MuJoCo, con rechazo si empeora.
+- **Timeout:** el respaldo duro era TRAIN_MIN + 15 y cortó la evaluación de la época 120 (el arranque de Isaac, ~13 min, cae dentro del proceso). Ahora es + 25; el freno por tiempo de train_safe no cambia.
