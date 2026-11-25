@@ -38,7 +38,7 @@ Nada de GPU sin prueba corta, freno temprano y rechazo si empeora.
 
 | Recurso | Qué trae | Licencia y acceso | ¿Nos sirve? |
 |---|---|---|---|
-| [Soccer-X](https://github.com/Young2647/Soccer-X-Dataset) ([paper](https://arxiv.org/abs/2411.16216)) | Unas 10 h de mocap de fútbol con balón (16 cámaras OptiTrack, 1,08 M frames), en formato SMPL | CC BY-NC-SA 4.0 (no comercial, compartir igual); se pide con un formulario | **El más valioso para las etapas 2 y 3** (patadas, controles, conducción con balón). Necesita: tu aceptación de la licencia, el modelo SMPL (no comercial) y un retargeter SMPL → SOMA. Choca con `docs/licensing.md` ("AMASS/SMPL: no se usan") y con un juego comercial: sirve para prototipo y portafolio, y habría que reemplazarlo antes de vender. **Decisión tuya** |
+| [Soccer-X](https://github.com/Young2647/Soccer-X-Dataset) ([paper](https://arxiv.org/abs/2411.16216)) | Unas 10 h de mocap de fútbol con balón (16 cámaras OptiTrack, 1,08 M frames), en formato SMPL | CC BY-NC-SA 4.0 (no comercial, compartir igual); se pide con un formulario | **El más valioso para las etapas 2 y 3** (patadas, controles, conducción con balón). Necesita: tu aceptación de la licencia, el modelo SMPL (no comercial) y un retargeter SMPL → SOMA. Choca con `docs/licensing.md` ("AMASS/SMPL: no se usan") y con un juego comercial: sirve para prototipo y portafolio, y habría que reemplazarlo antes de vender. **Descartado (2026-11-25)**: el acuerdo solo admite personal de instituciones educativas o de investigación |
 | [SoccerBot](https://arxiv.org/abs/2611.06564) (CoRL 2026, [proyecto](https://soccerbot-humanoid.github.io/)) | Receta probada: tracker con Soccer-X (2,5 h filtradas), destilado a un prior latente y una sola política PPO para moverse, conducir, controlar y patear (97% de patadas en sim) | Paper; **sin código, pesos ni datos publicados** | Como receta para la etapa 3: es casi nuestro plan "tracker → prior GPC → habilidades". Confirma el camino, no ahorra entrenamiento |
 | [GEAR-SONIC](https://huggingface.co/nvidia/GEAR-SONIC) / [GR00T-WholeBodyControl](https://github.com/NVlabs/GR00T-WholeBodyControl) (NVIDIA, 2026) | Tracker "fundacional" (100 M frames, 9.000 h de GPU): caminar, correr, saltar, gatear | NVIDIA Open Model License; pesos publicados | **No directamente**: es para el robot Unitree G1, no para el cuerpo SOMA. Sirve de referencia de escala |
 | [SMPLOlympics](https://www.researchgate.net/publication/381882828_SMPLOlympics_Sports_Environments_for_Physically_Simulated_Humanoids) | Entornos de deporte (incluido fútbol) para humanoides SMPL | Ligado a SMPL | Ideas de recompensas y tareas para la etapa 3 |
@@ -54,7 +54,30 @@ Revisión semanal, solo de lectura: papers y releases nuevos (arXiv, Hugging Fac
 sobre trackers, datasets de deporte y video a movimiento. Se agrega una línea a la tabla de arriba con fecha,
 licencia y si nos sirve. No se descarga nada sin tu aceptación de la licencia.
 
-## 4. Decisiones pendientes tuyas
-1. ¿Pedir Soccer-X (no comercial) para la fase de prototipo? Implicaría aceptar el uso de SMPL en el pipeline.
-2. ¿Aprobar E3 (subred en us-east-1f, $0)?
-3. ¿Aprobar las pruebas cortas de GPU de E1 y E2 (~$0,15-0,50 cada una)?
+## 4. Resultados (2026-11-25)
+Brandon decidió: Soccer-X sí, si ayuda y el trámite es fácil; usar las zonas más baratas; hacer las pruebas de GPU si
+el balance calidad/costo vale la pena.
+
+- **Soccer-X: descartado por licencia.** El acuerdo (VDI, ShanghaiTech) solo lo puede firmar personal permanente de
+  una organización educativa o de investigación; empresas y particulares no califican. Es no comercial, prohíbe
+  redistribuir y se pide con un PDF firmado por correo. Brandon no califica. Única vía: escribir a los autores para una
+  licencia especial o comercial (sección VIII del acuerdo); decisión de Brandon.
+- **E3 hecho.** Subred us-east-1f aplicada (PR #16). La g6.2xlarge spot cuesta ~$0,70 ahí contra ~$0,81-0,82.
+- **E2 medido con el pipeline real** (corrida 2026-11-25-2153, preflight de 8 min):
+
+  | Tipo | GPU | s/época | Arranque Isaac | Spot hoy | Resultado |
+  |---|---|---|---|---|---|
+  | g6.2xlarge (actual) | L4, 8 vCPU, 32 GB | ~11 | ~13 min | $0,70-0,82 | referencia |
+  | g6.xlarge | L4, 4 vCPU, 16 GB | ~11 (10 + 1) | ~12 min | $0,56-0,67 | **misma velocidad, ~20 % más barata**; sin falta de memoria |
+  | g4dn.2xlarge | T4 | — | — | $0,26-0,28 | sin capacidad spot en 1 h; sin medir |
+
+  Propuesta: la corrida diaria prueba g6.xlarge primero, después g6.2xlarge y g4dn.2xlarge (PR #17). La T4 se vuelve a
+  intentar cuando haya capacidad; si rinde más de ~40 % de la L4, sale más barata por época.
+- **E1 (cachés en la AMI): recomendado, pendiente.** Ahorra ~10 min de ~52 por corrida (~$0,10 en g6.xlarge, ~$3/mes)
+  y se paga solo en ~5 corridas. Requiere reconstruir la AMI (~$0,50 una vez). Se hace en un PR aparte, con prueba corta
+  antes y después.
+
+## 5. Decisiones pendientes tuyas
+1. ¿Escribir a los autores de Soccer-X para una licencia especial?
+2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
+3. ¿Seguir con E1 (reconstruir la AMI con cachés, ~$0,50)?
