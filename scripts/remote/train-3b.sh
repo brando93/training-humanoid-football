@@ -35,10 +35,14 @@ cd "$PROTOMOTIONS_ROOT" || exit 1
 SAVE=results/fase3b
 rm -rf "$SAVE"; mkdir -p "$SAVE"
 if aws s3 ls "s3://$BUCKET/checkpoints/3b/approved/last.ckpt" >/dev/null 2>&1; then
-  echo "== reanuda desde el último modelo aprobado"
-  s3 sync "s3://$BUCKET/checkpoints/3b/approved/" "$SAVE/"
+  # Warm start (no resume): reanudar dentro de $SAVE hace que ProtoMotions use la config congelada de la primera
+  # corrida e ignore --motion-file, así que buscaba un set de clips viejo que ya no existe (corrida 2026-11-25-0037).
+  # Con --checkpoint carga solo los pesos y arma la config con el set de clips actual, igual que desde NVIDIA.
+  echo "== warm start desde el último modelo aprobado"
+  mkdir -p "$ROOT/approved"
+  s3 cp "s3://$BUCKET/checkpoints/3b/approved/last.ckpt" "$ROOT/approved/last.ckpt"
   PREV="aprobado"
-  WARM=()
+  WARM=(--checkpoint "$ROOT/approved/last.ckpt")
 else
   echo "== warm start desde el tracker de NVIDIA"
   PREV="nvidia"

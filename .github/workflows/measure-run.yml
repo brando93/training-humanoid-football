@@ -6,8 +6,8 @@ name: measure-run
 
 on:
   schedule:
-    # Después de daily-train (16:07 UTC; la GPU termina en ~1 h). Pocas veces al día: cada despertar cuenta
-    # al menos 1 de los 2.000 min/mes gratis de Actions del repo privado.
+    # Después de daily-train (16:07 UTC; la GPU termina en ~1 h).
+    # Repo público: minutos ilimitados en runners de 4 núcleos (~1 h para 88 clips ×5).
     - cron: "17 17,18,20 * * *"
   workflow_dispatch:
   push:

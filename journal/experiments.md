@@ -107,4 +107,5 @@ Formato de cada entrada:
 | Caer sin dañarse | 50%, error de 18 cm |
 
 - **Determinismo:** con el modelo ajustado, las 5 repeticiones dan siempre el mismo resultado (0 clips mixtos de 96; el error varía ≤ 4 cm). El tracker base tenía 2 clips mixtos de 54.
-- **Problema de capacidad:** medir 88 clips ×5 cuesta ~440 evaluaciones (~29 s de CPU cada una). En un runner de 2 núcleos son ~1,5–2 h por corrida, más de lo que dan los 2.000 min/mes gratis de un repo privado. Los cron bajaron de 24 a 5 despertares al día. Falta decidir cómo medir.
+- **Problema de capacidad:** medir 88 clips ×5 cuesta ~440 evaluaciones (~29 s de CPU cada una). En un runner de 2 núcleos son ~1,5–2 h por corrida, más de lo que dan los 2.000 min/mes gratis de un repo privado. Los cron bajaron de 24 a 5 despertares al día.
+- **Decisión (Brandon):** el repo pasa a público. Actions no tiene límite de minutos en repos públicos y usa runners de 4 núcleos, así que la medición estimada es de ~1 h por corrida, gratis y sin tocar AWS. Al hacerlo público se activaron el escaneo de secretos, la protección en push y la aprobación obligatoria de workflows de forks.
