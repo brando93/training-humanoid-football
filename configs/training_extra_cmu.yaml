@@ -1,0 +1,15 @@
+# Clips de CMU que SOLO se usan para entrenar en GPU (no se miden ni se graban): más variedad de lo mismo
+# que mide el checklist, para que el modelo practique "hasta que le sobre" sin alargar la medición.
+# Mismo formato que configs/skills_cmu.yaml. Se convierten a data/cmu_motions_extra/ y los empaqueta
+# retarget/pack_training_set.py junto con los clips medidos. Sin sujeto 143 (niño).
+extra:
+  caminar: [7_02, 7_03, 7_06, 8_02, 8_03, 8_06, 35_02, 35_03, 35_04, 35_05, 35_06, 35_07, 35_08, 16_16, 16_21, 16_22, 91_29, 91_31, 91_34, 141_19]
+  caminar_girando: [69_06, 69_07, 69_08, 69_09, 69_10, 69_11, 69_12, 69_21, 69_22, 69_23, 69_25, 69_26, 69_27, 69_29, 69_30, 69_31, 69_32, 69_33, 16_18, 16_20, 16_27, 16_28, 16_29, 16_30, 104_27]
+  girar_en_sitio: [69_13, 69_14, 69_15, 69_39, 69_40]
+  atras_y_lateral: [69_35, 69_36, 69_37, 141_31, 141_33, 69_42, 69_43]
+  trotar: [35_19, 35_20, 35_21, 35_22, 35_23, 35_24, 35_25, 35_26, 16_36, 16_46, 16_56, 16_37, 16_38, 16_39, 16_40, 104_09, 104_10]
+  correr: [9_02, 9_04, 9_06, 9_07, 9_08, 9_09, 9_10, 9_11, 127_03, 127_08, 127_10, 127_11, 127_12, 128_02, 128_03, 141_03, 141_34, 16_55]
+  arrancar_y_frenar: [104_53, 104_54, 104_55, 104_56, 104_57, 128_06, 128_08, 127_22]
+  de_pie_y_agacharse: [137_28, 69_71, 115_01, 69_73, 69_74]
+  saltos: [141_04, 141_05, 91_39, 91_40, 91_41, 91_42, 49_02, 49_03, 14_09]
+  suelo: [140_02, 140_04, 140_08, 140_09, 127_24, 128_11]

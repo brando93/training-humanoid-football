@@ -27,7 +27,7 @@ source "$ROOT/env.sh"
 
 echo "== código y datos"
 mkdir -p "$REPO" && s3 cp "s3://$BUCKET/${CODE_KEY:-code/latest.tar.gz}" /tmp/code.tar.gz && tar -xzf /tmp/code.tar.gz -C "$REPO"
-TRAIN_SET="${TRAIN_SET:-cmu_soma_train.pt}"  # retarget/pack_training_set.py
+TRAIN_SET="${TRAIN_SET:-cmu_soma_train_v2.pt}"  # retarget/pack_training_set.py (v2: 208 clips, 2026-11-24)
 s3 cp "s3://$BUCKET/data/$TRAIN_SET" "$ROOT/train_set.pt"
 s3 sync "s3://$BUCKET/data/cmu_motions/" "$REPO/data/cmu_motions/"
 

@@ -89,3 +89,22 @@ Formato de cada entrada:
 - **Cambios:** la GPU solo entrena (TRAINED) y GitHub Actions mide y graba ($0, `measure-run.yml`); evaluación interna cada
   40 épocas; entrenamiento con `data/cmu_soma_train.pt` (49 clips, sin 104_01/104_37/104_48/127_17, que fallan por datos).
   Estimado: ~$0,65 por corrida (~50 min de GPU) en vez de $1,29.
+
+## 2026-11-24 (tarde) — Tanda 2: más clips para practicar
+
+- **Clips:** de 53 medidos + 0 extra a **88 medidos + 120 solo para entrenar** (CMU, uso libre). Set de GPU `cmu_soma_train_v2.pt`: 208 clips (antes 49).
+- **Reemplazos:** los 4 clips rotos (104_01, 104_37, 104_48, 127_17) se cambiaron por clips sanos de las mismas habilidades.
+- **Esprint:** sin clips. Las carreras de CMU duran ~1,2 s y no pasan de ~4,5 m/s; un esprint real supera 7 m/s.
+- **Medición sin entrenar** (modelo aprobado 2026-11-24-0250, ×5, 43 clips nuevos, 10 min en la Mac):
+
+| Habilidad | Resultado |
+|---|---|
+| De pie, girar en el sitio, caminar girando, saltar para alcanzar, trote a carrera, correr-parar-correr | Ya lo hacen: 100%, error < 10 cm |
+| Trotar | 100%, pero error de 12,5 cm |
+| Agacharse | 75% (falla 23_14) |
+| Caminar | 75% (falla 16_15, error de 34 cm: revisar el retarget) |
+| Correr recto | 75% (falla 127_08) |
+| Caer sin dañarse | 50%, error de 18 cm |
+
+- **Determinismo:** con el modelo ajustado, las 5 repeticiones dan siempre el mismo resultado (0 clips mixtos de 96; el error varía ≤ 4 cm). El tracker base tenía 2 clips mixtos de 54.
+- **Problema de capacidad:** medir 88 clips ×5 cuesta ~440 evaluaciones (~29 s de CPU cada una). En un runner de 2 núcleos son ~1,5–2 h por corrida, más de lo que dan los 2.000 min/mes gratis de un repo privado. Los cron bajaron de 24 a 5 despertares al día. Falta decidir cómo medir.

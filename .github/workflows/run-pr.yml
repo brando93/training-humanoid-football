@@ -4,7 +4,8 @@ name: run-pr
 
 on:
   schedule:
-    - cron: "37 */2 * * *"
+    # Respaldo: measure-run lo dispara al terminar. Corridas sin mejora (NO_IMPROVEMENT) no pasan por medición.
+    - cron: "37 19,23 * * *"
   workflow_dispatch:
 
 permissions:

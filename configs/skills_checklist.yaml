@@ -14,17 +14,17 @@
 # eval: nombre de la habilidad en configs/skills_cmu.yaml (null = todavía sin clips ni prueba).
 etapa_1_movimiento_humano:
   postura_y_equilibrio:
-    - {id: de_pie, nombre: "Estar de pie quieto, relajado", eval: null}
+    - {id: de_pie, nombre: "Estar de pie quieto, relajado", eval: de_pie}
     - {id: un_pie, nombre: "Equilibrio en un pie", eval: un_pie}
-    - {id: agacharse, nombre: "Agacharse y volver a erguirse", eval: null}
+    - {id: agacharse, nombre: "Agacharse y volver a erguirse", eval: agacharse}
   caminar:
-    - {id: caminar, nombre: "Caminar hacia adelante", eval: null}
+    - {id: caminar, nombre: "Caminar hacia adelante", eval: caminar}
     - {id: caminar_atras, nombre: "Caminar hacia atrás", eval: hacia_atras}
     - {id: caminar_lateral, nombre: "Pasos laterales", eval: lateral_defensivo}
-    - {id: girar_en_sitio, nombre: "Girar en el sitio", eval: null}
-    - {id: caminar_girando, nombre: "Caminar cambiando de dirección", eval: null}
+    - {id: girar_en_sitio, nombre: "Girar en el sitio", eval: girar_en_sitio}
+    - {id: caminar_girando, nombre: "Caminar cambiando de dirección", eval: caminar_girando}
   correr:
-    - {id: trotar, nombre: "Trotar", eval: null}
+    - {id: trotar, nombre: "Trotar", eval: trotar}
     - {id: correr, nombre: "Correr", eval: correr_recto}
     - {id: arrancar, nombre: "Arrancar desde quieto", eval: arrancar}
     - {id: frenar, nombre: "Frenar hasta quedar quieto", eval: frenar_en_seco}
@@ -32,7 +32,7 @@ etapa_1_movimiento_humano:
     - {id: saltar_dos_pies, nombre: "Saltar con los dos pies", eval: dos_pies}
   suelo:
     - {id: levantarse, nombre: "Levantarse del suelo", eval: levantarse}
-    - {id: caer_seguro, nombre: "Caer sin dañarse y recuperarse", eval: null}
+    - {id: caer_seguro, nombre: "Caer sin dañarse y recuperarse", eval: caer_seguro}
 
 etapa_2_atletico_futbol:
   velocidad:
@@ -47,7 +47,7 @@ etapa_2_atletico_futbol:
   saltos:
     - {id: salto_con_carrera, nombre: "Salto con carrera", eval: con_carrera}
     - {id: saltos_un_pie, nombre: "Saltos en un pie", eval: saltos_un_pie}
-    - {id: cabecear_salto, nombre: "Saltar para cabecear", eval: null}
+    - {id: cabecear_salto, nombre: "Saltar para cabecear", eval: cabecear}
   gesto:
     - {id: gesto_patada, nombre: "Gesto de patada de fútbol (sin balón)", eval: patear_balon_futbol}
 

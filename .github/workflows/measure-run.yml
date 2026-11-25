@@ -6,7 +6,9 @@ name: measure-run
 
 on:
   schedule:
-    - cron: "17 */2 * * *"
+    # Después de daily-train (16:07 UTC; la GPU termina en ~1 h). Pocas veces al día: cada despertar cuenta
+    # al menos 1 de los 2.000 min/mes gratis de Actions del repo privado.
+    - cron: "17 17,18,20 * * *"
   workflow_dispatch:
   push:
     branches: ["claude/costo-*"]
