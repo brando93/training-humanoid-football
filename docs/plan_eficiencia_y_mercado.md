@@ -73,11 +73,25 @@ el balance calidad/costo vale la pena.
 
   Propuesta: la corrida diaria prueba g6.xlarge primero, después g6.2xlarge y g4dn.2xlarge (PR #17). La T4 se vuelve a
   intentar cuando haya capacidad; si rinde más de ~40 % de la L4, sale más barata por época.
-- **E1 (cachés en la AMI): recomendado, pendiente.** Ahorra ~10 min de ~52 por corrida (~$0,10 en g6.xlarge, ~$3/mes)
-  y se paga solo en ~5 corridas. Requiere reconstruir la AMI (~$0,50 una vez). Se hace en un PR aparte, con prueba corta
-  antes y después.
+- **E1 (caché de arranque): hecho, ahorra poco (PR #18).** No cabe en la AMI: los kernels se compilan en GPU y la AMI se
+  construye en CPU. Va en S3 (11 MB por AMI+GPU). Medido en 2 pruebas cortas (2026-11-26, ~$0,60): **~1 min menos por
+  corrida** (24 → 23 min), no los ~10 estimados. Compilar no era lo lento. Con las marcas de tiempo nuevas, el arranque
+  de ~13 min se reparte así:
+  - ~6 s: bajar el código, los datos y el checkpoint.
+  - **~5,5 min: Python leyendo el venv (28 GB) desde un disco recién creado del snapshot.** EBS baja los bloques de S3
+    la primera vez que se leen (carga perezosa).
+  - ~1 min: abrir Isaac Sim.
+  - ~4 min: armar la física y la escena de 2048 entornos (no se puede cachear).
+  - El resto: compilar (lo que ahora quita la caché).
+- **E7 (nuevo, a investigar sin gastar): disco frío.** Es la parte más grande del arranque que todavía se puede atacar.
+  Opciones a evaluar en papel antes de cualquier prueba:
+  - la tasa de inicialización de volumen de EBS (verificar precio y si aplica a volúmenes de un launch template);
+  - leer en paralelo solo los archivos que Python usa al arrancar;
+  - adelgazar el venv.
+  Fast Snapshot Restore queda descartado: cobra por hora y por zona aunque no haya corridas.
 
 ## 5. Decisiones pendientes tuyas
 1. ¿Escribir a los autores de Soccer-X para una licencia especial?
 2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
-3. ¿Seguir con E1 (reconstruir la AMI con cachés, ~$0,50)?
+3. ¿Hacer merge de PR #18 (caché de arranque, ~1 min menos por corrida)?
+4. ¿Investigo E7 (disco frío, ~5 min por corrida) en papel?
