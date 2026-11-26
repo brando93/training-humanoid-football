@@ -16,7 +16,31 @@ REPO="$ROOT/repo"
 LOG="$ROOT/run-$RUN_ID.log"
 exec > >(tee -a "$LOG") 2>&1
 s3() { aws s3 "$@" --only-show-errors; }
+ts() { echo "== [$(date -u +%T)] $*"; }  # marca de fase: para saber en qué se va el arranque
+# Caché de arranque (E1): kernels de Warp/Triton/inductor, el USD convertido y la caché de Kit. Se compilan en la GPU,
+# así que no pueden ir en la AMI (se construye en CPU). La primera corrida con una AMI+GPU nueva la sube; las
+# siguientes la bajan. Clave = AMI + GPU: otra AMI u otra GPU arma la suya. Si falla, se recompila como antes.
+export TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor TRITON_CACHE_DIR=/root/.cache/triton
+SITES=("$ROOT"/venv/lib/python3*/site-packages); SITE=${SITES[0]}
+CACHE_DIRS=(/root/.cache/warp /root/.cache/protomotions /root/.cache/torchinductor /root/.cache/triton
+            /root/.cache/ov /root/.local/share/ov "$SITE/isaacsim/kit/cache" "$SITE/isaacsim/kit/data")
+ami=$(TOKEN=$(curl -s -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 60" http://169.254.169.254/latest/api/token) \
+      && curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/ami-id)
+gpu=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1 | tr -c 'A-Za-z0-9\n' '-' | tr -s '-')
+CACHE_KEY="s3://$BUCKET/checkpoints/cache/startup/${ami:-sin-ami}-${gpu:-sin-gpu}.tar.gz"
+CACHE_HIT=0
+save_cache() {  # solo si no había caché y el entrenamiento llegó a correr (hay kernels de Warp)
+  [[ "$CACHE_HIT" == "0" && -d /root/.cache/warp && "${NO_CACHE_SAVE:-}" != "1" ]] || return 0
+  local keep=() d
+  for d in "${CACHE_DIRS[@]}"; do  # nada de más de 3 GB: la caché tiene que bajar en segundos
+    [[ -d "$d" ]] && (( $(du -sm "$d" | cut -f1) < 3000 )) && keep+=("$d")
+  done
+  du -sh "${keep[@]}" 2>/dev/null
+  tar -czf /tmp/startup-cache.tar.gz -P "${keep[@]}" && s3 cp /tmp/startup-cache.tar.gz "$CACHE_KEY" \
+    && ts "caché de arranque subida ($(du -h /tmp/startup-cache.tar.gz | cut -f1)) a $CACHE_KEY"
+}
 finish() {  # pase lo que pase, el log llega a S3
+  save_cache
   s3 cp "$LOG" "s3://$BUCKET/logs/runs/$RUN_ID.log"
 }
 trap finish EXIT
@@ -25,7 +49,13 @@ echo "== corrida $RUN_ID | entrenamiento $TRAIN_MIN min | $(date -u)"
 source "$ROOT/env.sh"
 [[ "${OMNI_KIT_ACCEPT_EULA:-}" == "YES" ]] || { echo "EULA de Isaac Sim no aceptada (SSM)"; exit 1; }
 
-echo "== código y datos"
+ts "código y datos"
+if aws s3 cp "$CACHE_KEY" /tmp/startup-cache.tar.gz --only-show-errors 2>/dev/null \
+   && tar -xzf /tmp/startup-cache.tar.gz -P; then
+  CACHE_HIT=1; ts "caché de arranque restaurada ($CACHE_KEY)"
+else
+  ts "sin caché de arranque para esta AMI+GPU: se compila y se sube al final"
+fi
 mkdir -p "$REPO" && s3 cp "s3://$BUCKET/${CODE_KEY:-code/latest.tar.gz}" /tmp/code.tar.gz && tar -xzf /tmp/code.tar.gz -C "$REPO"
 TRAIN_SET="${TRAIN_SET:-cmu_soma_train_v2.pt}"  # retarget/pack_training_set.py (v2: 208 clips, 2026-11-24)
 s3 cp "s3://$BUCKET/data/$TRAIN_SET" "$ROOT/train_set.pt"
@@ -38,7 +68,7 @@ if aws s3 ls "s3://$BUCKET/checkpoints/3b/approved/last.ckpt" >/dev/null 2>&1; t
   # Warm start (no resume): reanudar dentro de $SAVE hace que ProtoMotions use la config congelada de la primera
   # corrida e ignore --motion-file, así que buscaba un set de clips viejo que ya no existe (corrida 2026-11-25-0037).
   # Con --checkpoint carga solo los pesos y arma la config con el set de clips actual, igual que desde NVIDIA.
-  echo "== warm start desde el último modelo aprobado"
+  ts "warm start desde el último modelo aprobado"
   mkdir -p "$ROOT/approved"
   s3 cp "s3://$BUCKET/checkpoints/3b/approved/last.ckpt" "$ROOT/approved/last.ckpt"
   PREV="aprobado"
@@ -49,7 +79,7 @@ else
   WARM=(--checkpoint data/pretrained_models/motion_tracker/anatomic_soma_bones_fsq/inference_last.ckpt)
 fi
 
-echo "== entrena $TRAIN_MIN min (contados desde la primera época) con training/train_safe.py"
+ts "entrena $TRAIN_MIN min (contados desde la primera época) con training/train_safe.py"
 # Seguro: normalización congelada, crítico calentado con el actor congelado, tasa baja (training/fase3b_finetune.py),
 # evaluación cada FT_EVAL_EVERY épocas, freno si empeora y límite de tiempo. timeout es solo el respaldo duro.
 t0=$(date +%s)
