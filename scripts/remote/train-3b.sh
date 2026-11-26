@@ -39,7 +39,20 @@ save_cache() {  # solo si no había caché y el entrenamiento llegó a correr (h
   tar -czf /tmp/startup-cache.tar.gz -P "${keep[@]}" && s3 cp /tmp/startup-cache.tar.gz "$CACHE_KEY" \
     && ts "caché de arranque subida ($(du -h /tmp/startup-cache.tar.gz | cut -f1)) a $CACHE_KEY"
 }
+# Lectura en paralelo (E7): el disco nuevo baja cada bloque de S3 la primera vez que se lee y Python lee miles de
+# archivos chicos de a uno. La primera corrida con una AMI nueva anota qué archivos se leyeron (por atime: con relatime
+# un archivo de hace más de 24 h se marca al leerlo); las siguientes los leen de antemano con 64 lecturas a la vez.
+FILES_KEY="s3://$BUCKET/checkpoints/cache/startup/${ami:-sin-ami}-files.txt"
+FILES_HIT=0
+touch /tmp/run-start
+save_filelist() {
+  [[ "$FILES_HIT" == "0" && -d /root/.cache/warp && "${NO_CACHE_SAVE:-}" != "1" ]] || return 0
+  find /opt /usr -xdev -type f -anewer /tmp/run-start -printf '%A@ %s %p\n' 2>/dev/null | sort -n > /tmp/startup-files.txt
+  s3 cp /tmp/startup-files.txt "$FILES_KEY" && ts "lista de arranque subida: $(wc -l < /tmp/startup-files.txt) archivos," \
+    "$(awk '{s+=$2} END {printf "%.1f GB", s/1e9}' /tmp/startup-files.txt)"
+}
 finish() {  # pase lo que pase, el log llega a S3
+  save_filelist
   save_cache
   s3 cp "$LOG" "s3://$BUCKET/logs/runs/$RUN_ID.log"
 }
@@ -55,6 +68,14 @@ if aws s3 cp "$CACHE_KEY" /tmp/startup-cache.tar.gz --only-show-errors 2>/dev/nu
   CACHE_HIT=1; ts "caché de arranque restaurada ($CACHE_KEY)"
 else
   ts "sin caché de arranque para esta AMI+GPU: se compila y se sube al final"
+fi
+if aws s3 cp "$FILES_KEY" /tmp/startup-files.txt --only-show-errors 2>/dev/null; then
+  FILES_HIT=1
+  ts "leyendo de antemano $(wc -l < /tmp/startup-files.txt) archivos en paralelo"
+  ( cut -d' ' -f3- /tmp/startup-files.txt | tr '\n' '\0' | xargs -0 -P 64 -n 32 cat > /dev/null 2>&1
+    ts "lectura de antemano terminada" ) &
+else
+  ts "sin lista de arranque para esta AMI: se anota al final"
 fi
 mkdir -p "$REPO" && s3 cp "s3://$BUCKET/${CODE_KEY:-code/latest.tar.gz}" /tmp/code.tar.gz && tar -xzf /tmp/code.tar.gz -C "$REPO"
 TRAIN_SET="${TRAIN_SET:-cmu_soma_train_v2.pt}"  # retarget/pack_training_set.py (v2: 208 clips, 2026-11-24)
