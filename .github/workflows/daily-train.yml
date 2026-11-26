@@ -46,5 +46,6 @@ jobs:
       - name: Lanzar corrida
         if: steps.gate.outputs.skip != 'true'
         run: |
-          id=$(scripts/launch-trainer.sh g6.2xlarge --run || scripts/launch-trainer.sh g4dn.2xlarge --run)
+          # g6.xlarge primero (2026-11-25): misma L4 y misma velocidad (~11 s/época) que g6.2xlarge, spot ~20 % más barata.
+          id=$(scripts/launch-trainer.sh g6.xlarge --run || scripts/launch-trainer.sh g6.2xlarge --run || scripts/launch-trainer.sh g4dn.2xlarge --run)
           echo "Corrida lanzada: $id" | tee -a "$GITHUB_STEP_SUMMARY"
