@@ -83,15 +83,23 @@ el balance calidad/costo vale la pena.
   - ~1 min: abrir Isaac Sim.
   - ~4 min: armar la física y la escena de 2048 entornos (no se puede cachear).
   - El resto: compilar (lo que ahora quita la caché).
-- **E7 (nuevo, a investigar sin gastar): disco frío.** Es la parte más grande del arranque que todavía se puede atacar.
-  Opciones a evaluar en papel antes de cualquier prueba:
-  - la tasa de inicialización de volumen de EBS (verificar precio y si aplica a volúmenes de un launch template);
-  - leer en paralelo solo los archivos que Python usa al arrancar;
-  - adelgazar el venv.
-  Fast Snapshot Restore queda descartado: cobra por hora y por zona aunque no haya corridas.
+- **E7 (disco frío): investigado en papel (2026-11-26).** Los ~5,5 min antes de abrir Isaac son Python leyendo el venv
+  desde un disco recién creado del snapshot de la AMI. Cada bloque se baja de S3 la primera vez que se lee, y Python lee
+  miles de archivos chicos uno por uno.
+
+  | Opción | Ahorro posible | Costo | Veredicto |
+  |---|---|---|---|
+  | Tasa de inicialización de volumen de EBS (100–300 MiB/s, se pone en el launch template) | hasta ~5 min (~$0,05 en g6.xlarge) | Se cobra por GiB del snapshot escrito en cada arranque. Con el precio de ejemplo de AWS ($0,0036/GiB a 300 MB/s) y un snapshot de ~70 GB: **~$0,25 por corrida** | **Descartada: cuesta ~5 veces lo que ahorra** |
+  | Fast Snapshot Restore | igual | Cobra por hora y por zona aunque no haya corridas (cientos de $/mes) | Descartada |
+  | Más rendimiento gp3 (de 125 a 500 MB/s) | incierto: el cuello de botella parece la bajada desde S3, no el disco | ~$0,03 por corrida | No sin medir antes |
+  | **Leer en paralelo solo los archivos que Isaac usa al arrancar.** Lista sacada una vez con `strace`; al arrancar, `xargs -P 64 cat` mientras bajan los datos | Estimado 3–4 min (esconde la espera por bloque con 64 lecturas a la vez) | $0 por corrida; una prueba corta para sacar la lista y otra para medir (~$0,60 en total) | **Recomendada** |
+  | Adelgazar el venv | poco: solo cuenta lo que se lee, no lo que ocupa | horas de trabajo | No ahora |
+
+  Pendiente de confirmar con la cuenta (gratis): el tamaño real escrito del snapshot (`FullSnapshotSizeInBytes`) y el
+  precio de la tasa en us-east-1. Si el precio fuera ~10 veces menor que el ejemplo, la primera opción se reconsidera.
 
 ## 5. Decisiones pendientes tuyas
 1. ¿Escribir a los autores de Soccer-X para una licencia especial?
 2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
 3. ¿Hacer merge de PR #18 (caché de arranque, ~1 min menos por corrida)?
-4. ¿Investigo E7 (disco frío, ~5 min por corrida) en papel?
+4. ¿Pruebo E7 con lectura en paralelo (2 pruebas cortas, ~$0,60)?
