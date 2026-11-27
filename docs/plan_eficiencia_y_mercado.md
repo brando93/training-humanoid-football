@@ -2,7 +2,7 @@
 
 Documento vivo (modo explorador y planeador): se revisa cada semana y antes de cada cambio de costo.
 Nada de esto está implementado todavía. Cada punto se aprueba por separado.
-Última revisión: 2026-11-25.
+Última revisión: 2026-11-27.
 
 ## 1. Adónde va el dinero de una corrida hoy
 
@@ -95,11 +95,26 @@ el balance calidad/costo vale la pena.
   | **Leer en paralelo solo los archivos que Isaac usa al arrancar.** Lista sacada una vez con `strace`; al arrancar, `xargs -P 64 cat` mientras bajan los datos | Estimado 3–4 min (esconde la espera por bloque con 64 lecturas a la vez) | $0 por corrida; una prueba corta para sacar la lista y otra para medir (~$0,60 en total) | **Recomendada** |
   | Adelgazar el venv | poco: solo cuenta lo que se lee, no lo que ocupa | horas de trabajo | No ahora |
 
-  Pendiente de confirmar con la cuenta (gratis): el tamaño real escrito del snapshot (`FullSnapshotSizeInBytes`) y el
-  precio de la tasa en us-east-1. Si el precio fuera ~10 veces menor que el ejemplo, la primera opción se reconsidera.
+  Confirmado con la cuenta (2026-11-27): el snapshot tiene 99 GiB escritos y la tasa cuesta en us-east-1 $0,0024/GiB
+  (100–200 MiB/s) o $0,0036/GiB (200–300 MiB/s): **$0,24–0,36 por corrida**, y a 200 MiB/s tarda ~8,5 min en llenar el
+  disco, más que la espera actual. Sigue descartada.
+
+- **E7 (lectura en paralelo): hecho y medido (2026-11-27, PR 18, ~$0,60).** La primera corrida con una AMI nueva anota
+  los archivos de `/opt` y `/usr` que leyó el arranque (15.758 archivos, 7,5 GB) y la sube a
+  `checkpoints/cache/startup/<AMI>-files.txt`. Las siguientes los leen 64 a la vez en segundo plano desde el primer
+  segundo. Si falta la lista, arranca como antes.
+
+  | Prueba | Tipo | Python hasta abrir Isaac |
+  |---|---|---|
+  | Sin lista (anota la lista) | g6.xlarge | 5:36 |
+  | Con lectura en paralelo | g6.2xlarge (sin capacidad de g6.xlarge) | **3:05** |
+
+  **Ahorro: ~2,5 min por corrida (~$0,03 en g6.xlarge), gratis.** Con E1 suman ~3,5 min. La lectura termina 6 min
+  después de empezar, mientras Isaac ya arma la escena, así que no estorba. Lo que queda lento es armar la física de
+  2048 entornos (~4 min). Caveat: las dos pruebas fueron en tipos distintos; antes, g6.2xlarge sin lista medía 5:26–5:41,
+  igual que g6.xlarge.
 
 ## 5. Decisiones pendientes tuyas
 1. ¿Escribir a los autores de Soccer-X para una licencia especial?
 2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
-3. ¿Hacer merge de PR #18 (caché de arranque, ~1 min menos por corrida)?
-4. ¿Pruebo E7 con lectura en paralelo (2 pruebas cortas, ~$0,60)?
+3. ¿Hacer merge de PR #18 (caché de arranque + lectura en paralelo, ~3,5 min menos por corrida)?
