@@ -46,8 +46,8 @@ Nada de GPU sin prueba corta, freno temprano y rechazo si empeora.
 | BONES-SEED (~142K movimientos) | El dataset con que NVIDIA preentrenó el tracker | Solo académicos o startups < US$1M | Sigue sin usarse (decisión pendiente, ver `docs/licensing.md`) |
 
 **Lo que no existe hoy** (búsqueda del 2026-11-25): un modelo preentrenado de fútbol para el cuerpo SOMA, ni
-un dataset de fútbol con licencia comercial y descarga libre. Lo más rápido es Soccer-X, si aceptas el costo de
-licencia (no comercial) para la fase de prototipo.
+un dataset de fútbol con licencia comercial y descarga libre. Soccer-X queda descartado del todo (decisión de Brandon,
+2026-11-27): no se pide licencia especial.
 
 ### Cómo se monitorea
 Revisión semanal, solo de lectura: papers y releases nuevos (arXiv, Hugging Face, GitHub de NVlabs/ProtoMotions)
@@ -114,7 +114,14 @@ el balance calidad/costo vale la pena.
   2048 entornos (~4 min). Caveat: las dos pruebas fueron en tipos distintos; antes, g6.2xlarge sin lista medía 5:26–5:41,
   igual que g6.xlarge.
 
+- **E4 (evaluaciones internas): hecho (2026-11-27).** Cada 60 épocas en vez de 40: en una corrida de 35 min son 2
+  evaluaciones en vez de 3, y los ~3,3 min liberados van a entrenar (~19 épocas más, ~+14 %, mismo costo). Se descartó
+  evaluar solo los 88 clips medidos: cada evaluación también ajusta cuánto se practica cada clip (los que fallan se
+  muestrean más), y los 120 clips de solo entrenar dejarían de ajustarse. Costo: el freno temprano llega a la época 120
+  en vez de la 80. Se mide en las próximas corridas diarias.
+- **E2 (T4): reintento aprobado (2026-11-27)** con la misma prueba corta de 8 min, cuando haya capacidad spot.
+- **Revisión del mercado: semanal, corta (~5 min), de solo lectura.** Qué hay de nuevo y qué es lo más usado para
+  humanoides de deporte; se agrega una línea por hallazgo a la tabla de la sección 3.
+
 ## 5. Decisiones pendientes tuyas
-1. ¿Escribir a los autores de Soccer-X para una licencia especial?
-2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
-3. ¿Hacer merge de PR #18 (caché de arranque + lectura en paralelo, ~3,5 min menos por corrida)?
+Ninguna por ahora (todos los PRs del plan tienen merge; Soccer-X descartado).
