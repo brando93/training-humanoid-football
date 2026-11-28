@@ -2,7 +2,7 @@
 
 Documento vivo (modo explorador y planeador): se revisa cada semana y antes de cada cambio de costo.
 Nada de esto está implementado todavía. Cada punto se aprueba por separado.
-Última revisión: 2026-11-25.
+Última revisión: 2026-11-27.
 
 ## 1. Adónde va el dinero de una corrida hoy
 
@@ -46,8 +46,8 @@ Nada de GPU sin prueba corta, freno temprano y rechazo si empeora.
 | BONES-SEED (~142K movimientos) | El dataset con que NVIDIA preentrenó el tracker | Solo académicos o startups < US$1M | Sigue sin usarse (decisión pendiente, ver `docs/licensing.md`) |
 
 **Lo que no existe hoy** (búsqueda del 2026-11-25): un modelo preentrenado de fútbol para el cuerpo SOMA, ni
-un dataset de fútbol con licencia comercial y descarga libre. Lo más rápido es Soccer-X, si aceptas el costo de
-licencia (no comercial) para la fase de prototipo.
+un dataset de fútbol con licencia comercial y descarga libre. Soccer-X queda descartado del todo (decisión de Brandon,
+2026-11-27): no se pide licencia especial.
 
 ### Cómo se monitorea
 Revisión semanal, solo de lectura: papers y releases nuevos (arXiv, Hugging Face, GitHub de NVlabs/ProtoMotions)
@@ -73,11 +73,55 @@ el balance calidad/costo vale la pena.
 
   Propuesta: la corrida diaria prueba g6.xlarge primero, después g6.2xlarge y g4dn.2xlarge (PR #17). La T4 se vuelve a
   intentar cuando haya capacidad; si rinde más de ~40 % de la L4, sale más barata por época.
-- **E1 (cachés en la AMI): recomendado, pendiente.** Ahorra ~10 min de ~52 por corrida (~$0,10 en g6.xlarge, ~$3/mes)
-  y se paga solo en ~5 corridas. Requiere reconstruir la AMI (~$0,50 una vez). Se hace en un PR aparte, con prueba corta
-  antes y después.
+- **E1 (caché de arranque): hecho, ahorra poco (PR #18).** No cabe en la AMI: los kernels se compilan en GPU y la AMI se
+  construye en CPU. Va en S3 (11 MB por AMI+GPU). Medido en 2 pruebas cortas (2026-11-26, ~$0,60): **~1 min menos por
+  corrida** (24 → 23 min), no los ~10 estimados. Compilar no era lo lento. Con las marcas de tiempo nuevas, el arranque
+  de ~13 min se reparte así:
+  - ~6 s: bajar el código, los datos y el checkpoint.
+  - **~5,5 min: Python leyendo el venv (28 GB) desde un disco recién creado del snapshot.** EBS baja los bloques de S3
+    la primera vez que se leen (carga perezosa).
+  - ~1 min: abrir Isaac Sim.
+  - ~4 min: armar la física y la escena de 2048 entornos (no se puede cachear).
+  - El resto: compilar (lo que ahora quita la caché).
+- **E7 (disco frío): investigado en papel (2026-11-26).** Los ~5,5 min antes de abrir Isaac son Python leyendo el venv
+  desde un disco recién creado del snapshot de la AMI. Cada bloque se baja de S3 la primera vez que se lee, y Python lee
+  miles de archivos chicos uno por uno.
+
+  | Opción | Ahorro posible | Costo | Veredicto |
+  |---|---|---|---|
+  | Tasa de inicialización de volumen de EBS (100–300 MiB/s, se pone en el launch template) | hasta ~5 min (~$0,05 en g6.xlarge) | Se cobra por GiB del snapshot escrito en cada arranque. Con el precio de ejemplo de AWS ($0,0036/GiB a 300 MB/s) y un snapshot de ~70 GB: **~$0,25 por corrida** | **Descartada: cuesta ~5 veces lo que ahorra** |
+  | Fast Snapshot Restore | igual | Cobra por hora y por zona aunque no haya corridas (cientos de $/mes) | Descartada |
+  | Más rendimiento gp3 (de 125 a 500 MB/s) | incierto: el cuello de botella parece la bajada desde S3, no el disco | ~$0,03 por corrida | No sin medir antes |
+  | **Leer en paralelo solo los archivos que Isaac usa al arrancar.** Lista sacada una vez con `strace`; al arrancar, `xargs -P 64 cat` mientras bajan los datos | Estimado 3–4 min (esconde la espera por bloque con 64 lecturas a la vez) | $0 por corrida; una prueba corta para sacar la lista y otra para medir (~$0,60 en total) | **Recomendada** |
+  | Adelgazar el venv | poco: solo cuenta lo que se lee, no lo que ocupa | horas de trabajo | No ahora |
+
+  Confirmado con la cuenta (2026-11-27): el snapshot tiene 99 GiB escritos y la tasa cuesta en us-east-1 $0,0024/GiB
+  (100–200 MiB/s) o $0,0036/GiB (200–300 MiB/s): **$0,24–0,36 por corrida**, y a 200 MiB/s tarda ~8,5 min en llenar el
+  disco, más que la espera actual. Sigue descartada.
+
+- **E7 (lectura en paralelo): hecho y medido (2026-11-27, PR 18, ~$0,60).** La primera corrida con una AMI nueva anota
+  los archivos de `/opt` y `/usr` que leyó el arranque (15.758 archivos, 7,5 GB) y la sube a
+  `checkpoints/cache/startup/<AMI>-files.txt`. Las siguientes los leen 64 a la vez en segundo plano desde el primer
+  segundo. Si falta la lista, arranca como antes.
+
+  | Prueba | Tipo | Python hasta abrir Isaac |
+  |---|---|---|
+  | Sin lista (anota la lista) | g6.xlarge | 5:36 |
+  | Con lectura en paralelo | g6.2xlarge (sin capacidad de g6.xlarge) | **3:05** |
+
+  **Ahorro: ~2,5 min por corrida (~$0,03 en g6.xlarge), gratis.** Con E1 suman ~3,5 min. La lectura termina 6 min
+  después de empezar, mientras Isaac ya arma la escena, así que no estorba. Lo que queda lento es armar la física de
+  2048 entornos (~4 min). Caveat: las dos pruebas fueron en tipos distintos; antes, g6.2xlarge sin lista medía 5:26–5:41,
+  igual que g6.xlarge.
+
+- **E4 (evaluaciones internas): hecho (2026-11-27).** Cada 60 épocas en vez de 40: en una corrida de 35 min son 2
+  evaluaciones en vez de 3, y los ~3,3 min liberados van a entrenar (~19 épocas más, ~+14 %, mismo costo). Se descartó
+  evaluar solo los 88 clips medidos: cada evaluación también ajusta cuánto se practica cada clip (los que fallan se
+  muestrean más), y los 120 clips de solo entrenar dejarían de ajustarse. Costo: el freno temprano llega a la época 120
+  en vez de la 80. Se mide en las próximas corridas diarias.
+- **E2 (T4): reintento aprobado (2026-11-27)** con la misma prueba corta de 8 min, cuando haya capacidad spot.
+- **Revisión del mercado: semanal, corta (~5 min), de solo lectura.** Qué hay de nuevo y qué es lo más usado para
+  humanoides de deporte; se agrega una línea por hallazgo a la tabla de la sección 3.
 
 ## 5. Decisiones pendientes tuyas
-1. ¿Escribir a los autores de Soccer-X para una licencia especial?
-2. ¿Hacer merge de PR #17 (g6.xlarge primero)?
-3. ¿Seguir con E1 (reconstruir la AMI con cachés, ~$0,50)?
+Ninguna por ahora (todos los PRs del plan tienen merge; Soccer-X descartado).

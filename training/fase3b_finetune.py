@@ -4,7 +4,7 @@ lo que el modelo ya sabe:
 
 - Tasa de aprendizaje del actor 10x menor (5e-4 -> 5e-5; la parte Adam 1e-4 -> 1e-5): la receta original es
   para entrenar desde cero; con ella el primer paso tuvo KL 0,99 y deformó la política.
-- Evaluación interna cada EVAL_EVERY épocas (40; la original: cada 200), para poder frenar a tiempo y guardar el
+- Evaluación interna cada EVAL_EVERY épocas (60; la original: cada 200), para poder frenar a tiempo y guardar el
   mejor modelo (score_based.ckpt).
 El calentamiento del crítico (actor congelado al inicio), el freno por empeoramiento y el límite de tiempo los
 aplica training/train_safe.py.
@@ -20,7 +20,7 @@ from examples.experiments.mimic import anatomical_soma_fsq_mimic as base
 
 ACTOR_LR = float(os.environ.get("FT_ACTOR_LR", "5e-5"))
 ACTOR_ADAM_LR = float(os.environ.get("FT_ACTOR_ADAM_LR", "1e-5"))
-EVAL_EVERY = int(os.environ.get("FT_EVAL_EVERY", "40"))  # cada evaluación cuesta ~3,3 min de L4: con 20, casi la mitad del entrenamiento
+EVAL_EVERY = int(os.environ.get("FT_EVAL_EVERY", "60"))  # cada evaluación cuesta ~3,3 min de L4. Con 40 eran 3 por corrida de 35 min; con 60 son 2 y ~19 épocas más (E4)
 
 
 def agent_config(robot_cfg, env_cfg, args):
